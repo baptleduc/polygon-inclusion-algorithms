@@ -21,13 +21,7 @@ def trouve_inclusions(polygones):
         for j, polygon2 in enumerate(polygones):
             if i != j and RayCast.is_include(polygon1, polygon2):        
                 inclusions[i] = j
-                print(f"Le polygone {i} est inclu dans le polygone {j} ")
                 break
-            
-
-
-        
-
     return inclusions
 
 
