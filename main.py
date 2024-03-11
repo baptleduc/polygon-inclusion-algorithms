@@ -6,7 +6,7 @@ attention donc lors des modifications.
 """
 import sys
 from tycat import read_instance
-
+from ray_casting import RayCast
 
 def trouve_inclusions(polygones):
     """
@@ -15,7 +15,20 @@ def trouve_inclusions(polygones):
     contenant le ieme polygone (-1 si aucun).
     (voir le sujet pour plus d'info)
     """
-    return ["TODO"]
+    inclusions : list = [-1 for _ in range(len(polygones))]
+
+    for i, polygon1 in enumerate(polygones):
+        for j, polygon2 in enumerate(polygones):
+            if i != j and RayCast.is_include(polygon1, polygon2):        
+                inclusions[i] = j
+                print(f"Le polygone {i} est inclu dans le polygone {j} ")
+                break
+            
+
+
+        
+
+    return inclusions
 
 
 def main():
@@ -24,9 +37,10 @@ def main():
     trouve les inclusions
     affiche l'arbre en format texte
     """
+   
     for fichier in sys.argv[1:]:
         polygones = read_instance(fichier)
-        inclusions = trouve_inclusions(polygones)
+        inclusions: list = trouve_inclusions(polygones)
         print(inclusions)
 
 
