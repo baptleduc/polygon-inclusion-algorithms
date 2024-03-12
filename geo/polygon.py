@@ -64,7 +64,6 @@ class Polygon:
         """
         return sum(p1.cross_product(p2)
                    for p1, p2 in couples(self.points)) / 2
-
     def is_oriented_clockwise(self):
         """
         clockwise being defined respectively to svg displayed, return

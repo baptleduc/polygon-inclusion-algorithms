@@ -7,6 +7,7 @@ attention donc lors des modifications.
 import sys
 from tycat import read_instance
 from ray_casting import RayCast
+from find import Find
 
 def trouve_inclusions(polygones):
     """
@@ -31,12 +32,15 @@ def main():
     trouve les inclusions
     affiche l'arbre en format texte
     """
-   
     for fichier in sys.argv[1:]:
         polygones = read_instance(fichier)
-        inclusions: list = trouve_inclusions(polygones)
+        Find.area_check(polygones)
+        inclusions: list = Find.naif(polygones)
+        print("naif :")
         print(inclusions)
-
+        inclusions = Find.area_check(polygones)
+        print("air :")
+        print(inclusions)
 
 if __name__ == "__main__":
     main()

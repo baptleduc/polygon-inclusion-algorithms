@@ -52,7 +52,7 @@ class Point:
         """
         return Quadrant(self.coordinates, self.coordinates)
 
-    def svg_content(self):
+    def smvg_content(self):
         """
         svg display for tycat.
         """
