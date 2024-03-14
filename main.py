@@ -35,11 +35,11 @@ def main():
     for fichier in sys.argv[1:]:
         polygones = read_instance(fichier)
         Find.area_check(polygones)
-        inclusions: list = Find.naif(polygones)
-        print("naif :")
-        print(inclusions)
+        # inclusions: list = Find.naif(polygones)
+        # print("naif :")
+        # print(inclusions)
         inclusions = Find.area_check(polygones)
-        print("air :")
+        
         print(inclusions)
 
 if __name__ == "__main__":
