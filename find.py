@@ -25,6 +25,7 @@ class Find:
         current = Tree()
         forest = []
         for (_, IN, id) in liste_point:
+            #print(IN,id)
             new_branch = Tree()
             if current.parent :
                 if IN:
@@ -32,6 +33,8 @@ class Find:
                     current.add_childs(new_branch)
                 else:
                     while current.value != id:
+                        if current.parent == None:
+                            break
                         current = current.parent
                     if current.parent is not None:
                         current.parent.add_childs(new_branch)
@@ -74,7 +77,9 @@ class Find:
     def area_local_vision(polygones):
         liste = Find.__poly_abs_extremis(polygones)
         forest_inclusion = Find.__get_potential_tree(liste)
-        #print(forest_inclusion[0])
+        #for tree in forest_inclusion:
+            #print(forest_inclusion[0])
+            #print("arbre suivant")
         inclusions : list = [-1 for _ in range(len(polygones))]
         for tree in forest_inclusion:
             tree.test_inclusion_with_childs(inclusions,polygones)
