@@ -38,7 +38,7 @@ def main():
         #inclusions: list = Find.naif(polygones)
         #print("naif :")
         #print(inclusions)
-        inclusions = Find.area_local_vision(polygones)
+        inclusions = Find.area_check(polygones)
         
         print(inclusions)
 
