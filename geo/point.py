@@ -24,6 +24,8 @@ class Point:
         build new point using an array of coordinates.
         """
         self.coordinates = coordinates
+        self.singular : bool
+        self.is_include: bool = False
 
     def copy(self):
         """
@@ -52,7 +54,7 @@ class Point:
         """
         return Quadrant(self.coordinates, self.coordinates)
 
-    def smvg_content(self):
+    def svg_content(self):
         """
         svg display for tycat.
         """
