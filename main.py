@@ -10,7 +10,7 @@ from geo.point import Point
 from tycat import read_instance
 from ray_casting import RayCast
 from find import Find
-from quad_tree import GridPointInPolygon
+from grid_point_in_polygon import GridPointInPolygon
 
 def trouve_inclusions(polygones):
     """
