@@ -218,6 +218,26 @@ class GridPointInPolygon:
         
         # If the point is not within any grid cell, return False
         return False
+    
+
+    def is_polygon_include(self, test_polygon: Polygon) -> bool:
+        """
+        Check if test_polygon is included in self.polygon
+
+        Args:
+            test_polygon (Polygon): The polygon to be checked.
+
+        Returns:
+            bool: True if the entire test_polygon is included in self.polygon, False otherwise.
+        """
+        for point in test_polygon.points:
+            if not self.is_point_include(point):
+                return False
+        return True
+
+
+        
+        
 
 
 

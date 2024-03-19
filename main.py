@@ -29,19 +29,25 @@ def trouve_inclusions(polygones):
     return inclusions
 
 
-def test_quadtree(polygones):
+def test_grid(polygones):
     polygon1 = polygones[0]
+    tycat(polygon1.segments())
     polygon2 = polygones[1]
-    grid = GridPointInPolygon(polygon1)
-    grid.determining_center_points(10, 10)
-    grid.center_points_inclusion_test()
-    test_point = Point((3,4))
-    for point in polygon2.points:
-        print(grid.is_point_include(point))
+    grid2 = GridPointInPolygon(polygon2)
+    grid2.determining_center_points(10,10)
+    grid2.center_points_inclusion_test()
 
-    # points = [Point(point) for point in quad_tree.bounding_quadrant.get_arrays()]
-    tycat(test_point,  list(grid.center_points.values()), polygon1.segments(), polygon2.segments())
+    tycat(polygon2.segments())
+    grid1 = GridPointInPolygon(polygon1)
+    grid1.determining_center_points(10, 10)
+    grid1.center_points_inclusion_test()
+    print(grid1.is_polygon_include(polygon2))
+    print(grid2.is_polygon_include(polygon1))
     
+    # points = [Point(point) for point in quad_tree.bounding_quadrant.get_arrays()]
+    # tycat(test_point,  list(grid.center_points.values()), polygon1.segments(), polygon2.segments())
+
+
     
 def main():
     """
@@ -51,13 +57,12 @@ def main():
     """
     for fichier in sys.argv[1:]:
         polygones = read_instance(fichier)
-        Find.area_check(polygones)
-        #inclusions: list = Find.naif(polygones)
+        # inclusions: list = Find.naif(polygones)
         #print("naif :")
         #print(inclusions)
-        inclusions = Find.area_check(polygones)
         
-        # print(inclusions)
+        inclusions = test_grid(polygones)
+        print(inclusions)
 
 if __name__ == "__main__":
     main()
