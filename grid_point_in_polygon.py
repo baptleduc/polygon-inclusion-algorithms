@@ -19,7 +19,10 @@ class GridPointInPolygon:
         """
 
         self.polygon: Polygon = polygon
-        self.bounding_quadrant: Quadrant = polygon.bounding_quadrant()
+
+        # Smallest enclosing quadrant for the polygon
+        self.bounding_quadrant: Quadrant = polygon.bounding_quadrant() 
+        
         self.center_points : dict
         self.offset_x : int
         self.offset_y : int
