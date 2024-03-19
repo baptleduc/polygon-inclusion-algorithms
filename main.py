@@ -10,7 +10,7 @@ from geo.point import Point
 from tycat import read_instance
 from ray_casting import RayCast
 from find import Find
-from quad_tree import QuadTree
+from quad_tree import GridPointInPolygon
 
 def trouve_inclusions(polygones):
     """
@@ -32,14 +32,15 @@ def trouve_inclusions(polygones):
 def test_quadtree(polygones):
     polygon1 = polygones[0]
     polygon2 = polygones[1]
-    quad_tree = QuadTree(polygon2)
-    quad_tree.center_points_inclusion_test()
+    grid = GridPointInPolygon(polygon1)
+    grid.determining_center_points(10, 10)
+    grid.center_points_inclusion_test()
     test_point = Point((3,4))
-    for point in polygon1.points:
-        print(quad_tree.is_point_include(point))
+    for point in polygon2.points:
+        print(grid.is_point_include(point))
 
     # points = [Point(point) for point in quad_tree.bounding_quadrant.get_arrays()]
-    tycat(test_point,  list(quad_tree.center_points.values()), polygon1.segments(), polygon2.segments())
+    tycat(test_point,  list(grid.center_points.values()), polygon1.segments(), polygon2.segments())
     
     
 def main():
