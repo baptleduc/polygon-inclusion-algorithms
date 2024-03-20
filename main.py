@@ -40,7 +40,7 @@ def test_grid(polygones):
     #tycat(polygon2.segments())
     grid1 = GridPointInPolygon(polygon1)
     grid1.determining_center_points(10, 10)
-    grid1.center_points_inclusion_test()
+    grid1.center_points_incxlusion_test()
     print(grid1.is_polygon_include(polygon2))
     print(grid2.is_polygon_include(polygon1))
     
@@ -57,10 +57,9 @@ def main():
     """
     for fichier in sys.argv[1:]:
         polygones = read_instance(fichier)
-        inclusions: list = Find.area_check(polygones)
+        inclusions: list = Find.area_local_vision(polygones)
         #print("naif :")
         print(inclusions)
-        
         #inclusions = test_grid(polygones)
         #print(inclusions)
 
