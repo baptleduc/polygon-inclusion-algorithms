@@ -4,6 +4,7 @@ from geo.point import Point
 from geo.segment import Segment
 from ray_casting import RayCast
 from tree import Tree
+from grid_point_in_polygon import GridPointInPolygon
 
 #variables gloables
 IN = True
@@ -52,24 +53,34 @@ class Find:
             tab.append((abs(polygone.area()),i))
         return(tab)
 
-    def naif(polygones):
-        inclusions : list = [-1 for _ in range(len(polygones))]
-        for i, polygon1 in enumerate(polygones):
-            for j, polygon2 in enumerate(polygones):
-                if i != j and RayCast.is_include(polygon1, polygon2):        
-                    inclusions[i] = j
-                    break
-        return inclusions
+    # def naif(polygones):
+    #     inclusions : list = [-1 for _ in range(len(polygones))]
+    #     for i, polygon1 in enumerate(polygones):
+    #         for j, polygon2 in enumerate(polygones):
+    #             if i != j :
+    #                 grid = GridPointInPolygon(polygon1)
+    #                 grid.determining_center_points(10,10)
+    #                 grid.center_points_inclusion_test()
+    #                 if grid.is_polygon_include(polygon2):        
+    #                     inclusions[i] = j
+    #                     break
+    #     return inclusions
 
     def area_check(polygones):
         inclusions : list = [-1 for _ in range(len(polygones))]
         polygones_sorted = sorted(Find.__list_with_area(polygones))
         count = 0
+        #print(polygones_sorted)
         for i in range(len(polygones_sorted)):
             for j in range(i+1,len(polygones_sorted)):
                 _,polygone1 = polygones_sorted[i]
                 _,polygone2 = polygones_sorted[j]
-                if RayCast.is_include(polygones[polygone1],polygones[polygone2]):
+                #print("test ", polygone1, " dans ",polygone2)
+                grid = GridPointInPolygon(polygones[polygone2])
+                grid.determining_center_points(10,10)
+                grid.center_points_inclusion_test()
+                if grid.is_polygon_include(polygones[polygone1]):
+                    #print("pass")
                     inclusions[polygone1] = polygone2
                     break
         return inclusions

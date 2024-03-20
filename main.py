@@ -31,13 +31,13 @@ def trouve_inclusions(polygones):
 
 def test_grid(polygones):
     polygon1 = polygones[0]
-    tycat(polygon1.segments())
+    #tycat(polygon1.segments())
     polygon2 = polygones[1]
     grid2 = GridPointInPolygon(polygon2)
     grid2.determining_center_points(10,10)
     grid2.center_points_inclusion_test()
 
-    tycat(polygon2.segments())
+    #tycat(polygon2.segments())
     grid1 = GridPointInPolygon(polygon1)
     grid1.determining_center_points(10, 10)
     grid1.center_points_inclusion_test()
@@ -57,12 +57,12 @@ def main():
     """
     for fichier in sys.argv[1:]:
         polygones = read_instance(fichier)
-        # inclusions: list = Find.naif(polygones)
+        inclusions: list = Find.area_check(polygones)
         #print("naif :")
-        #print(inclusions)
-        
-        inclusions = test_grid(polygones)
         print(inclusions)
+        
+        #inclusions = test_grid(polygones)
+        #print(inclusions)
 
 if __name__ == "__main__":
     main()
