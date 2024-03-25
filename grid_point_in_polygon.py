@@ -183,12 +183,6 @@ class GridPointInPolygon:
                 pointB.is_include = "MAYBE"
                 return
 
-            # if self.on_segment(p1.coordinates, q1.coordinates, pointB.coordinates):
-            #     print(f"p1 : ({p1.coordinates[0]}, {p1.coordinates[1]}),q1 : ({q1.coordinates[0]}, {q1.coordinates[1]}), pB : ({pointB.coordinates[0]}, {pointB.coordinates[1]})")
-            #     pointB.is_singular = True
-            #     pointB.is_include = "MAYBE"
-            #     return
-            # Check if the segment intersects with the line segment formed by pointA and pointB
             if self.do_intersect(p1.coordinates, q1.coordinates, pointA.coordinates, pointB.coordinates):
                 sum_intersection += 1
         
@@ -267,6 +261,8 @@ class GridPointInPolygon:
             self.is_point_include(point)
             if point.is_include == "IN":
                 return True
+            elif point.is_include == "OUT":
+                return False
         return False
 
 
