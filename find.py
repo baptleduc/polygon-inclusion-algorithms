@@ -6,7 +6,9 @@ from ray_casting import RayCast
 from tree import Tree
 from liste_doublement_chainee import ListeChainee
 from grid_point_in_polygon import GridPointInPolygon
+import sys
 
+sys.setrecursionlimit(20000)
 #variables gloables
 IN = True
 OUT = False
