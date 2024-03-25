@@ -84,8 +84,8 @@ class Find:
                 _,polygone2 = polygones_sorted[j]
                 #print("test ", polygone1, " dans ",polygone2)
                 grid = GridPointInPolygon(polygones[polygone2])
-                grid.determining_center_points(10,10)
-                grid.center_points_inclusion_test()
+                grid.__determining_center_points(10,10)
+                grid.__center_points_inclusion_test()
                 if grid.is_polygon_include(polygones[polygone1]):
                     #print("pass")
                     inclusions[polygone1] = polygone2
@@ -104,9 +104,7 @@ class Find:
         inclusions_possibles =Find.__intersection(inclusions_possibles_ordonne, inclusions_possibles_abscisse)
         for polygone1 in range(len(inclusions_possibles)):
             for polygone2 in inclusions_possibles[polygone1]:
-                grid = GridPointInPolygon(polygones[polygone2])
-                grid.determining_center_points(10,10)
-                grid.center_points_inclusion_test()
+                grid = GridPointInPolygon(polygones[polygone2], 10, 10)
                 if grid.is_polygon_include(polygones[polygone1]):
                     inclusions[polygone1] = polygone2
                     break

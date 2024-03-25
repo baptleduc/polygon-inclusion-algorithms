@@ -39,10 +39,10 @@ class RayCast:
         """
 
         for point in polygon1.points:
-            if not RayCast.is_point_inside_polygon(point, polygon2): 
-                return False
+            if RayCast.is_point_inside_polygon(point, polygon2): 
+                return True
         
-        return True
+        return False
 
 
 

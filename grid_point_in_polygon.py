@@ -2,12 +2,13 @@ from geo.polygon import Polygon
 from geo.quadrant import Quadrant
 from geo.point import Point
 
+
 class GridPointInPolygon:
     """
     Point-in-Polygon tests by determining grid center
     points in advance.
     """
-    def __init__(self, polygon) -> None:
+    def __init__(self, polygon, nb_rows, nb_columns) -> None:
         """
         Initialize the GridPointInPolygon object with the given polygon.
 
@@ -26,11 +27,12 @@ class GridPointInPolygon:
         self.center_points : dict
         self.offset_x : int
         self.offset_y : int
-        self.sure_in = []
-        self.sure_out = []
+
+        self.__determining_center_points(nb_rows, nb_columns)
+        self.__center_points_inclusion_test()
 
 
-    def determining_center_points(self, nb_rows: int, nb_columns: int) -> None:
+    def __determining_center_points(self, nb_rows: int, nb_columns: int) -> None:
         """
         Determine the center points of a grid within the bounding quadrant.
 
@@ -80,13 +82,12 @@ class GridPointInPolygon:
 
                 if x_center_point <= x_min or x_center_point >= x_max:
                     center_point.is_include = "OUT"
-                    self.sure_out.append(center_point)
                     center_point.is_singular = False
 
                 self.center_points[(x, y)] = center_point
             
 
-    def do_intersect(self, p1, q1, p2, q2):
+    def __do_intersect(self, p1, q1, p2, q2):
         """
         Check if line segments p1q1 and p2q2 intersect.
 
@@ -99,24 +100,17 @@ class GridPointInPolygon:
         Returns:
             bool: True if the line segments intersect, False otherwise.
         """
-        o1 = self.orientation(p1, q1, p2)
-        o2 = self.orientation(p1, q1, q2)
-        o3 = self.orientation(p2, q2, p1)
-        o4 = self.orientation(p2, q2, q1)
+        o1 = self.__orientation(p1, q1, p2)
+        o2 = self.__orientation(p1, q1, q2)
+        o3 = self.__orientation(p2, q2, p1)
+        o4 = self.__orientation(p2, q2, q1)
 
         if o1 != o2 and o3 != o4:
             return True
-
-        # if all(x == 0 for x in (o1, o2, o3, o4)):
-        #     return (self.on_segment(p1, p2, q1) or
-        #             self.on_segment(p1, q2, q1) or
-        #             self.on_segment(p2, p1, q2) or
-        #             self.on_segment(p2, q1, q2))
-
         return False
 
     @staticmethod
-    def on_segment(point_p, point_q, point_r):
+    def __on_segment(point_p, point_q, point_r):
         """
         Check if point_r lies on segment pq.
 
@@ -134,7 +128,7 @@ class GridPointInPolygon:
         return min(x_p, x_q) <= x_r <= max(x_p, x_q) and min(y_p, y_q) <= y_r <= max(y_p, y_q)
 
     @staticmethod
-    def orientation(point_p, point_q, point_r):
+    def __orientation(point_p, point_q, point_r):
         """
         Determine the orientation of three points.
 
@@ -157,10 +151,12 @@ class GridPointInPolygon:
         else:
             return 2  # Counter-clockwise
 
-    def inclusion_test(self, pointA: Point, pointB: Point) -> bool:
+    def __inclusion_test(self, pointA: Point, pointB: Point) -> None:
         """
         Test if pointB is included within the polygon by counting the number of intersections 
         between the line segment formed by pointA and pointB and all segments of the polygon.
+
+        Updates the 'is_include' attribute of pointB based on these tests.
 
         Args:
             pointA (Point): The first endpoint of the line segment.
@@ -178,12 +174,13 @@ class GridPointInPolygon:
         # Iterate through each segment of the polygon
         for segment in self.polygon.segments():
             p1, q1 = segment.endpoints
+            #Determine if pointB lies on segment
             if segment.contains(pointB):
                 pointB.is_singular = True
                 pointB.is_include = "MAYBE"
                 return
 
-            if self.do_intersect(p1.coordinates, q1.coordinates, pointA.coordinates, pointB.coordinates):
+            if self.__do_intersect(p1.coordinates, q1.coordinates, pointA.coordinates, pointB.coordinates):
                 sum_intersection += 1
         
         # Determine if pointB is included based on the number of intersections
@@ -195,7 +192,7 @@ class GridPointInPolygon:
         pointB.is_singular = False
         return 
     
-    def center_points_inclusion_test(self) -> None:
+    def __center_points_inclusion_test(self) -> None:
         """
         Test inclusion between consecutive center points.
 
@@ -207,32 +204,31 @@ class GridPointInPolygon:
             pointA = list_center_points[i]
             for j in range(i+1, len(list_center_points)):
                 pointB = list_center_points[j]
-                self.inclusion_test(pointA, pointB)
-                if pointB.is_include == "IN":
-                    self.sure_in.append(pointB)
-                else:
-                    self.sure_out.append(pointB)
+                self.__inclusion_test(pointA, pointB)
                 if not pointB.is_singular:
                     break
                     
 
             
-    def is_point_include(self, point: Point) -> bool:
+    def is_point_include(self, point: Point) -> None:
         """
         Check if a point is inside the polygon.
 
         This method determines the grid cell containing the given point and tests
-        its inclusion by using the center-point of that grid cell.
+        its inclusion by using the center-point of that grid cell. It modifies the 
+        'is_include' attribute of the given point to indicate whether it is inside 
+        (is_include = 'IN'), outside (is_include = 'OUT'), or lies on a segment 
+        (is_include = 'MAYBE') of the polygon.
 
         Args:
             point (Point): The point to be checked.
 
         Returns:
-            bool: True if the point is inside the polygon, False otherwise.
+            None
         """
-        # Extract the coordinates of the point
+
         x, y = point.coordinates
-        
+
         # Iterate through each grid cell
         for key, value in self.center_points.items():
             x_case, y_case = key
@@ -241,9 +237,8 @@ class GridPointInPolygon:
             # Check if the point lies within the current grid cell
             if (x_case <= x <= x_case + self.offset_x) and (y_case <= y <= y_case + self.offset_y):
                 # Test inclusion between the center point of the grid cell and the given point
-                self.inclusion_test(center_point, point)
+                self.__inclusion_test(center_point, point)
                 return
-        
         point.is_include = "OUT"
     
 
@@ -266,23 +261,11 @@ class GridPointInPolygon:
         return False
 
 
-        
-        
-
-
-
-
-
-
-
-            
-
-
 if __name__ == '__main__':
     p1 = (0,2)
     p2 = (0,4)
     r = (0.1,3)
-    print(GridPointInPolygon.on_segment(p1,p2, r))
+    print(GridPointInPolygon.__on_segment(p1,p2, r))
 
                 
 
