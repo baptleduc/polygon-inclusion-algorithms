@@ -24,8 +24,8 @@ class Point:
         build new point using an array of coordinates.
         """
         self.coordinates = coordinates
-        self.singular : bool
-        self.is_include: bool = False
+        self.is_singular : bool
+        self.is_include: str 
 
     def copy(self):
         """
@@ -105,4 +105,4 @@ class Point:
         """
         lexicographical comparison
         """
-        return self.coordinates < other.coordinates
+        return list(self.coordinates) < list(other.coordinates)
