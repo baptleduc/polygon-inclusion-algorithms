@@ -258,7 +258,7 @@ class GridPointInPolygon:
                 return True
             elif point.is_include == "OUT":
                 return False
-        return False
+        return True
 
 
 if __name__ == '__main__':

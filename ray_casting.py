@@ -22,9 +22,14 @@ class RayCast:
     def is_point_inside_polygon(point: Point, polygon) -> bool:
         sum_intersections: int = 0
         for segment in polygon.segments():
+            #Determine if pointB lies on segment
+            if segment.contains(point):
+                point.is_singular = True
+                point.is_include = "MAYBE"
+                return
             sum_intersections += 1 if RayCast.__is_intersection(point, segment) else 0
         
-        return False if sum_intersections % 2 == 0 else True
+        return 'OUT' if sum_intersections % 2 == 0 else 'IN'
     
     @staticmethod
     def is_include(polygon1: Polygon, polygon2: Polygon) -> bool:
@@ -39,10 +44,13 @@ class RayCast:
         """
 
         for point in polygon1.points:
-            if RayCast.is_point_inside_polygon(point, polygon2): 
+            if RayCast.is_point_inside_polygon(point, polygon2) == "IN": 
                 return True
-        
-        return False
+            elif RayCast.is_point_inside_polygon(point, polygon2) == "OUT":
+                return False
+        return True
+            
+      
 
 
 

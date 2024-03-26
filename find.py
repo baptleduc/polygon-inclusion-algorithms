@@ -109,3 +109,20 @@ class Find:
                     inclusions[polygone1] = polygone2
                     break
         return inclusions
+    
+    def area_local_vision_ray_cast(polygones):
+        x = 0
+        y = 1
+        liste_abscisse = Find.__poly_abs_extremis(polygones,x)
+        liste_ordonne = Find.__poly_abs_extremis(polygones,y)      
+
+        inclusions : list = [-1 for _ in range(len(polygones))]
+        inclusions_possibles_abscisse = Find.__potential_inclusions(liste_abscisse)
+        inclusions_possibles_ordonne =  Find.__potential_inclusions(liste_ordonne)
+        inclusions_possibles =Find.__intersection(inclusions_possibles_ordonne, inclusions_possibles_abscisse)
+        for polygone1 in range(len(inclusions_possibles)):
+            for polygone2 in inclusions_possibles[polygone1]:
+                if RayCast.is_include(polygones[polygone1],polygones[polygone2]):
+                    inclusions[polygone1] = polygone2
+                    break
+        return inclusions
