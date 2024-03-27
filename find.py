@@ -3,12 +3,10 @@ from geo.polygon import Polygon
 from geo.point import Point
 from geo.segment import Segment
 from ray_casting import RayCast
-from tree import Tree
-from liste_doublement_chainee import ListeChainee
 from grid_point_in_polygon import GridPointInPolygon
+from listWithTab import ListeTab
 import sys
 
-sys.setrecursionlimit(20000)
 #variables gloables
 IN = True
 OUT = False
@@ -46,23 +44,17 @@ class Find:
 
     
     @staticmethod
-    def __potential_inclusions(liste_point):
-        currentlist = ListeChainee()
+    def __potential_inclusions(liste_point,taille):
+        currentlist = ListeTab(taille)
         inclusion_possible = [[] for _ in range(len(liste_point)//2)]
         for (_, IN, id) in liste_point:
             if IN:
-                currentlist = currentlist.insert(id)
+                currentlist.insert(id)
                 #currentlist.affiche()
             else:
                 #print("delete ",id)
-                currentlist = currentlist.delete(id)
+                inclusion_possible[id] = currentlist.delete(id)
                 #currentlist.affiche()
-                while currentlist.prec:
-                    inclusion_possible[id].append(currentlist.value)
-                    currentlist = currentlist.prec
-                if currentlist.value is not None:
-                    inclusion_possible[id].append(currentlist.value)
-                currentlist = currentlist.go_end()
         return inclusion_possible           
 
     @staticmethod
@@ -99,8 +91,8 @@ class Find:
         liste_ordonne = Find.__poly_abs_extremis(polygones,y)      
 
         inclusions : list = [-1 for _ in range(len(polygones))]
-        inclusions_possibles_abscisse = Find.__potential_inclusions(liste_abscisse)
-        inclusions_possibles_ordonne =  Find.__potential_inclusions(liste_ordonne)
+        inclusions_possibles_abscisse = Find.__potential_inclusions(liste_abscisse,len(polygones))
+        inclusions_possibles_ordonne =  Find.__potential_inclusions(liste_ordonne,len(polygones))
         inclusions_possibles =Find.__intersection(inclusions_possibles_ordonne, inclusions_possibles_abscisse)
         for polygone1 in range(len(inclusions_possibles)):
             for polygone2 in inclusions_possibles[polygone1]:
@@ -117,8 +109,8 @@ class Find:
         liste_ordonne = Find.__poly_abs_extremis(polygones,y)      
 
         inclusions : list = [-1 for _ in range(len(polygones))]
-        inclusions_possibles_abscisse = Find.__potential_inclusions(liste_abscisse)
-        inclusions_possibles_ordonne =  Find.__potential_inclusions(liste_ordonne)
+        inclusions_possibles_abscisse = Find.__potential_inclusions(liste_abscisse,len(polygones))
+        inclusions_possibles_ordonne =  Find.__potential_inclusions(liste_ordonne,len(polygones))
         inclusions_possibles =Find.__intersection(inclusions_possibles_ordonne, inclusions_possibles_abscisse)
         for polygone1 in range(len(inclusions_possibles)):
             for polygone2 in inclusions_possibles[polygone1]:
