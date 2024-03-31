@@ -2,7 +2,6 @@ from geo.polygon import Polygon
 from geo.quadrant import Quadrant
 from geo.segment import Segment
 from geo.point import Point
-from geo.tycat import tycat
 import math
 from cell import Cell
 
