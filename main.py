@@ -57,8 +57,8 @@ def main():
     """
     for fichier in sys.argv[1:]:
         polygones = read_instance(fichier)
-        inclusions: list = Find.area_local_vision_ray_cast(polygones)
-        # inclusions = Find.area_local_vision(polygones)
+        # inclusions: list = Find.area_local_vision_ray_cast(polygones)
+        inclusions = Find.area_local_vision(polygones)
         #print("naif :")
         # inclusions = trouve_inclusions(polygones)
         

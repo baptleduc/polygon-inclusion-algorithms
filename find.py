@@ -96,7 +96,7 @@ class Find:
         inclusions_possibles =Find.__intersection(inclusions_possibles_ordonne, inclusions_possibles_abscisse)
         for polygone1 in range(len(inclusions_possibles)):
             for polygone2 in inclusions_possibles[polygone1]:
-                grid = GridPointInPolygon(polygones[polygone2], 10, 10)
+                grid = GridPointInPolygon(polygones[polygone2], 20, 20)
                 if grid.is_polygon_include(polygones[polygone1]):
                     inclusions[polygone1] = polygone2
                     break
