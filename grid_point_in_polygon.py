@@ -23,7 +23,6 @@ class GridPointInPolygon:
         """
 
         self.polygon: Polygon = polygon
-        
 
         # Smallest enclosing quadrant for the polygon
         self.bounding_quadrant: Quadrant = polygon.bounding_quadrant() 
@@ -61,14 +60,10 @@ class GridPointInPolygon:
 
         # Adjust the grid’s bounding box slightly larger than the polygon’s bounding box
         # to avoid problems caused by finite arithmetic.
-
         x_min -= 0.2
         x_max += 0.2
         y_min -= 0.2
         y_max += 0.2
-        
-        
-
 
         # Calculate the offsets in x and y
         self.offset_x = (x_max - x_min) / nb_columns
@@ -79,12 +74,11 @@ class GridPointInPolygon:
         self.x_min = x_start
 
         self.cells = []
-        # Iterate over each row
+
         for i in range(nb_rows):
             y = y_min + i * self.offset_y
             cells_row = []
             
-            # Iterate over each column
             for j in range(nb_columns + 2):
                 x = x_start + j * self.offset_x
 
@@ -101,7 +95,16 @@ class GridPointInPolygon:
 
             self.cells.append(cells_row)
     
-    def dda_to_cells(self, segment: Segment):
+    def dda_to_cells(self, segment: Segment) -> None:
+        """
+        [UNUSED]
+
+        Traverse the grid along a segment, adding the segment to every cell it intersects by using
+        Digital Differential Analyzer (DDA) algorithm. 
+        
+        Args:
+            segment (Segment): The segment to traverse
+        """
         (x1, y1), (x2, y2) = segment.endpoints[0].coordinates, segment.endpoints[1].coordinates
         dx, dy = (x2-x1), (y2-y1)
         steps = max(abs(dx), abs(dy))
@@ -122,18 +125,33 @@ class GridPointInPolygon:
             i += 1
         
 
-    def __marked_transversed_cells(self):
+    def __marked_transversed_cells(self) -> None:
+        """
+        Perfom the segment_grid_traversal for each segment of the polygon.
+        """
         for segment in self.polygon.segments():
             self.segment_grid_traversal(segment)
     
-    def get_idx_cell_containing_point(self, x, y):
+    def __get_idx_cell_containing_point(self, x: int, y: int) -> tuple:
+        """
+        Get the index of the cell in self.cells containing the point (x, y).
+
+        Args:
+            x (int): The x-coordinate of the point.
+            y (int): The y-coordinate of the point.
+
+        Returns:
+            tuple: A tuple (idx_x, idx_y) representing the indices of the cell containing the point.
+        """
+
         idx_cell_crossed_x = math.floor((x - self.x_min) / self.offset_x)
         idx_cell_crossed_y = math.floor((y - self.y_min) / self.offset_y)
         return idx_cell_crossed_x, idx_cell_crossed_y
   
-    def segment_grid_traversal(self, segment):
+    def segment_grid_traversal(self, segment) -> None:
         """
-        Traverse the grid along a segment, adding the segment to every cell it intersects.
+        Traverse the grid along a segment, adding the segment to every cell it intersects by
+        using Fast Voxel Traversal Algorithm. 
 
         Args:
             segment (Segment) : The segment to traverse
@@ -153,7 +171,7 @@ class GridPointInPolygon:
         segment_direction_x, segment_direction_y = SIGN(segment_dx), SIGN(segment_dy)
 
         #Add the segment to the cell initially containing the point (x1, y1).
-        current_X_index, current_Y_index = self.get_idx_cell_containing_point(x1, y1)
+        current_X_index, current_Y_index = self.__get_idx_cell_containing_point(x1, y1)
         current_cell: Cell = self.cells[current_Y_index][current_X_index]
         current_cell.edges.add(segment) 
 
@@ -185,22 +203,19 @@ class GridPointInPolygon:
             if t_max_x < t_max_y:
                 t_max_x += t_delta_x
                 x += step_x
-                current_X_index, current_Y_index = self.get_idx_cell_containing_point(x, y)
+                current_X_index, current_Y_index = self.__get_idx_cell_containing_point(x, y)
                 if not ( 0 <= current_X_index < len(self.cells[0])):
                     break
             else:
                 t_max_y += t_delta_y
                 y += step_y
-                current_X_index, current_Y_index = self.get_idx_cell_containing_point(x, y)
+                current_X_index, current_Y_index = self.__get_idx_cell_containing_point(x, y)
                 if not ( 0 <= current_Y_index < len(self.cells)):
                     break
-                
+
             current_cell= self.cells[current_Y_index][current_X_index]
             current_cell.edges.add(segment)
             
-
-
-
     def __do_intersect(self, p1, q1, p2, q2):
         """
         Check if line segments p1q1 and p2q2 intersect.
@@ -329,9 +344,6 @@ class GridPointInPolygon:
                     if not cellB.center_point.is_singular:
                         break
             
-                    
-
-            
     def is_point_include(self, point: Point) -> None:
         """
         Check if a point is inside the polygon.
@@ -350,7 +362,7 @@ class GridPointInPolygon:
         """
 
         x, y = point.coordinates
-        idx_cell_x, idx_cell_y = self.get_idx_cell_containing_point(x,y)
+        idx_cell_x, idx_cell_y = self.__get_idx_cell_containing_point(x,y)
         if 0 <= idx_cell_x <= len(self.cells[0]) - 1 and 0 <= idx_cell_y <= len(self.cells) - 1:
             cell_with_point: Cell = self.cells[idx_cell_y][idx_cell_x]
             self.__inclusion_test(cell_with_point, cell_with_point, cell_with_point.center_point, point)
@@ -375,15 +387,6 @@ class GridPointInPolygon:
             elif point.is_include == "OUT":
                 return False
         return True
-
-
-if __name__ == '__main__':
-    p1 = (0,2)
-    p2 = (0,4)
-    r = (0.1,3)
-    print(GridPointInPolygon.__on_segment(p1,p2, r))
-
-                
 
 
 
