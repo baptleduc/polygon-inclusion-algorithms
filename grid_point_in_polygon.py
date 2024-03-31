@@ -179,7 +179,7 @@ class GridPointInPolygon:
         else:
             t_max_y = t_delta_y * FRAC0(y1)
         
-        step_x, step_y = segment_direction_x * self.offset_x/1.5, segment_direction_y * self.offset_y/1.5
+        step_x, step_y = segment_direction_x * self.offset_x/10, segment_direction_y * self.offset_y/10
         x, y = x1, y1
         while 1:
             # print(f'idx_x: {current_X_index}, idx_y: {current_Y_index}')
@@ -269,8 +269,8 @@ class GridPointInPolygon:
 
     def __inclusion_test(self, cellA: Cell, cellB: Cell, pointA: Point, pointB: Point) -> None:
         """
-        Test if 'p' is included within the polygon by counting the number of intersections 
-        between the line segment formed by pointA and pointB and all segments of the polygon.
+        Test if 'pointB' is included within the polygon by counting the number of intersections 
+        between the line segment formed by pointA and pointB and all segments of cellA.edges U cellB.edges.
 
         Updates the 'is_include' attribute of pointB based on these tests.
 
@@ -282,41 +282,30 @@ class GridPointInPolygon:
             bool: True if pointB is inside the polygon, False otherwise.
 
         Preconditions:
-            c.is_include must be known.
+            pointA.is_include must be known.
         """
         
-        # Initialize the intersection count
         sum_intersection = 0
-        # print("-"* 100)
-        # print(f"pointA : {pointA.coordinates}, pointB : {pointB.coordinates}")
-        # print(f"point A.is_include = {pointA.is_include}")
         
         all_edges = cellA.edges | cellB.edges
-        # Iterate through each segment of the polygon
+
+        # Iterate through each segments of cellA and cellB
         for segment in all_edges:
             p1, q1 = segment.endpoints
-            # print(f"segment: {segment}")
-            #Determine if pointB lies on segment
+
             if segment.contains(pointB):
                 pointB.is_singular = True
                 pointB.is_include = "MAYBE"
-                # print(f"final result : pointB.is_include : {pointB.is_include}")
-                self.sure_maybe.append(pointB)
                 return
 
             if self.__do_intersect(p1.coordinates, q1.coordinates, pointA.coordinates, pointB.coordinates):
                 sum_intersection += 1
-        # print(f"sum_intersection = {sum_intersection}")
-        # Determine if pointB is included based on the number of intersections
+
         if (pointA.is_include == "OUT" and sum_intersection % 2 == 1) or (pointA.is_include=="IN" and sum_intersection % 2 == 0):
             pointB.is_include = "IN"
-            self.sure_in.append(pointB)
         else:
             pointB.is_include = "OUT"
-            self.sure_out.append(pointB)
-
         pointB.is_singular = False
-        # print(f"final result : pointB.is_include : {pointB.is_include}")
         return 
     
     def __center_points_inclusion_test(self) -> None:
@@ -326,29 +315,21 @@ class GridPointInPolygon:
         This method tests the inclusion between each consecutive pair of center points
         in the grid.
         """
-        nb_cells_row, nb_cells_column = len(self.cells), len(self.cells[0])
-        for i in range(nb_cells_row):
-            for k in range(nb_cells_column):
-                cellA = self.cells[i][k]
+        num_columns = len(self.cells[0])
+
+        for row_idx, row in enumerate(self.cells):
+
+            for col_idx, cellA in enumerate(row):
                 if cellA.center_point.is_singular:
                     continue
-                for j in range(k+1, nb_cells_column):
-                    cellB = self.cells[i][j]
+
+                for next_col_idx in range(col_idx + 1, num_columns):
+                    cellB = self.cells[row_idx][next_col_idx]
                     self.__inclusion_test(cellA, cellB, cellA.center_point, cellB.center_point)
+
+                    #If cellB.center_point not singular, move on to the next pair
                     if not cellB.center_point.is_singular:
                         break
-
-        # nb_cells_row, nb_cells_column = len(self.cells), len(self.cells[0])
-        # for k in range(nb_cells_column):
-        #     cellA = self.cells[5][k]
-        #     if cellA.center_point.is_singular:
-        #         continue
-        #     for j in range(k+1, nb_cells_column):
-        #         cellB = self.cells[5][j]
-        #         self.__inclusion_test(cellA, cellB, cellA.center_point, cellB.center_point)
-        #         if not cellB.center_point.is_singular:
-        #             break
-        
             
                     
 
