@@ -28,17 +28,11 @@ class GridPointInPolygon:
         # Smallest enclosing quadrant for the polygon
         self.bounding_quadrant: Quadrant = polygon.bounding_quadrant() 
         
-        self.center_points : dict
         self.offset_x : int
         self.offset_y : int
         self.x_min: int 
         self.y_min: int
         self.cells: list
-
-        self.sure_in = []
-        self.sure_out = []
-        self.sure_maybe = []
-        
 
         self.__determining_center_points(nb_rows, nb_columns)
         self.marked_transversed_cells()
@@ -84,7 +78,6 @@ class GridPointInPolygon:
         self.y_min = y_min
         self.x_min = x_start
 
-        self.center_points = {}
         self.cells = []
         # Iterate over each row
         for i in range(nb_rows):
@@ -104,10 +97,8 @@ class GridPointInPolygon:
 
                 if center_point_x <= x_min or center_point_x >= x_max:
                     center_point.is_include = "OUT"
-                    self.sure_out.append(center_point)
                     center_point.is_singular = False
 
-                self.center_points[(x, y)] = center_point
             self.cells.append(cells_row)
     
     def dda_to_cells(self, segment: Segment):
@@ -358,21 +349,6 @@ class GridPointInPolygon:
             self.__inclusion_test(cell_with_point, cell_with_point, cell_with_point.center_point, point)
             return
         point.is_include= "OUT"
-        self.sure_out.append(point)
-
-
-
-        # # Iterate through each grid cell
-        # for key, value in self.center_points.items():
-        #     x_case, y_case = key
-        #     center_point = value
-            
-        #     # Check if the point lies within the current grid cell
-        #     if (x_case <= x <= x_case + self.offset_x) and (y_case <= y <= y_case + self.offset_y):
-        #         # Test inclusion between the center point of the grid cell and the given point
-        #         self.__inclusion_test(center_point, point)
-        #         return
-        # point.is_include = "OUT"
     
 
     def is_polygon_include(self, test_polygon: Polygon) -> bool:
