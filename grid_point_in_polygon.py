@@ -35,7 +35,7 @@ class GridPointInPolygon:
         self.cells: list
 
         self.__determining_center_points(nb_rows, nb_columns)
-        self.marked_transversed_cells()
+        self.__marked_transversed_cells()
         self.__center_points_inclusion_test()
 
 
@@ -122,16 +122,22 @@ class GridPointInPolygon:
             i += 1
         
 
-    def marked_transversed_cells(self):
+    def __marked_transversed_cells(self):
         for segment in self.polygon.segments():
-            self.cell_tranversal(segment)
+            self.segment_grid_traversal(segment)
     
     def get_idx_cell_containing_point(self, x, y):
         idx_cell_crossed_x = math.floor((x - self.x_min) / self.offset_x)
         idx_cell_crossed_y = math.floor((y - self.y_min) / self.offset_y)
         return idx_cell_crossed_x, idx_cell_crossed_y
   
-    def cell_tranversal(self, segment):
+    def segment_grid_traversal(self, segment):
+        """
+        Traverse the grid along a segment, adding the segment to every cell it intersects.
+
+        Args:
+            segment (Segment) : The segment to traverse
+        """
 
         def SIGN(x):
             return 1 if x > 0 else -1 if x < 0 else 0
@@ -143,13 +149,14 @@ class GridPointInPolygon:
             return x - math.floor(x)
         
         (x1, y1), (x2, y2) = segment.endpoints[0].coordinates, segment.endpoints[1].coordinates
+        segment_dx, segment_dy = (x2 - x1), (y2 - y1)
+        segment_direction_x, segment_direction_y = SIGN(segment_dx), SIGN(segment_dy)
+
+        #Add the segment to the cell initially containing the point (x1, y1).
         current_X_index, current_Y_index = self.get_idx_cell_containing_point(x1, y1)
         current_cell: Cell = self.cells[current_Y_index][current_X_index]
-        current_cell.edges.add(segment)
+        current_cell.edges.add(segment) 
 
-        segment_dx, segment_dy = (x2 - x1), (y2 - y1)  
-        
-        segment_direction_x, segment_direction_y = SIGN(segment_dx), SIGN(segment_dy)
         if segment_direction_x != 0:
             t_delta_x = min(segment_direction_x * self.offset_x / segment_dx, 10000000.0)
         else:
@@ -173,7 +180,6 @@ class GridPointInPolygon:
         step_x, step_y = segment_direction_x * self.offset_x/10, segment_direction_y * self.offset_y/10
         x, y = x1, y1
         while 1:
-            # print(f'idx_x: {current_X_index}, idx_y: {current_Y_index}')
             if current_cell.x_min <= x2 <= current_cell.x_max and current_cell.y_min <= y2 <= current_cell.y_max:
                 break
             if t_max_x < t_max_y:
@@ -188,6 +194,7 @@ class GridPointInPolygon:
                 current_X_index, current_Y_index = self.get_idx_cell_containing_point(x, y)
                 if not ( 0 <= current_Y_index < len(self.cells)):
                     break
+                
             current_cell= self.cells[current_Y_index][current_X_index]
             current_cell.edges.add(segment)
             
