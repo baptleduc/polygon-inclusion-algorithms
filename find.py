@@ -82,19 +82,19 @@ class Find:
         Args: 
              polygones: array of Polygon
         Returns:
-             An array where the i-th element is the number of polygon that the i-th is inclued in using the area of each polygon to order test
+             An array where the i-th element is the number of polygon that the i-th is inclued in using the area of each polygon to order the tests
         """
         inclusions : list = [-1 for _ in range(len(polygones))]
         polygones_sorted = sorted(Find.__list_with_area(polygones))
-        count = 0
+        tab_grid = [None for _ in range(len(polygones))]
+        # each polygon is tested whith others polygon which have a bigger area to see if it's included or not
         for i in range(len(polygones_sorted)):
             for j in range(i+1,len(polygones_sorted)):
                 _,polygone1 = polygones_sorted[i]
                 _,polygone2 = polygones_sorted[j]
-                grid = GridPointInPolygon(polygones[polygone2])
-                grid.__determining_center_points(10,10)
-                grid.__center_points_inclusion_test()
-                if grid.is_polygon_include(polygones[polygone1]):
+                if tab_grid[polygone2] == None:
+                    tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 20, 20)
+                if tab_grid[polygone2].is_polygon_include(polygones[polygone1]):
                     inclusions[polygone1] = polygone2
                     break
         return inclusions
@@ -110,13 +110,18 @@ class Find:
             An array where the i-th element represent the polygone that the i-th polygone is inclued in"""
         x = 0
         y = 1
+        # step 1
+        # Brows the plan in the horizontal then in the vertival way to determine potential inclusion for each polygon
         liste_abscisse = Find.__poly_extrem_coord(polygones,x)
         liste_ordonne = Find.__poly_extrem_coord(polygones,y)      
-        inclusions : list = [-1 for _ in range(len(polygones))]
-        tab_grid = [None for _ in range(len(polygones))]
         inclusions_possibles_abscisse = Find.__potential_inclusions(liste_abscisse,len(polygones))
         inclusions_possibles_ordonne =  Find.__potential_inclusions(liste_ordonne,len(polygones))
+        # intersection of results
         inclusions_possibles =Find.__intersection(inclusions_possibles_ordonne, inclusions_possibles_abscisse)
+        tab_grid = [None for _ in range(len(polygones))]
+        inclusions : list = [-1 for _ in range(len(polygones))]
+        # state 2
+        # Each polygon is tested whith other polygon determined in inclusion_possible
         for polygone1 in range(len(inclusions_possibles)):
             for polygone2 in inclusions_possibles[polygone1]:
                 if tab_grid[polygone2] == None:
