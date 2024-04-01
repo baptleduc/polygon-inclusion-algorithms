@@ -211,8 +211,8 @@ class GridPointInPolygon:
             t_max_y = t_delta_y * FRAC0(y1)
 
         step_x, step_y = (
-            segment_direction_x * self.offset_x / 10,
-            segment_direction_y * self.offset_y / 10,
+            segment_direction_x * self.offset_x / 100,
+            segment_direction_y * self.offset_y / 100,
         )
         x, y = x1, y1
         while 1:
