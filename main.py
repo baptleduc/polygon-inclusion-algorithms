@@ -10,38 +10,9 @@ from tycat import read_instance
 from ray_casting import RayCast
 from find import Find
 from grid_point_in_polygon import GridPointInPolygon
-
-def trouve_inclusions(polygones):
-    """
-    renvoie le vecteur des inclusions
-    la ieme case contient l'indice du polygone
-    contenant le ieme polygone (-1 si aucun).
-    (voir le sujet pour plus d'info)
-    """
-    inclusions : list = [-1 for _ in range(len(polygones))]
-
-    for i, polygon1 in enumerate(polygones):
-        for j, polygon2 in enumerate(polygones):
-            if i != j and RayCast.is_include(polygon1, polygon2):        
-                inclusions[i] = j
-                break
-    return inclusions
+import sys
 
 
-
-def test_grid(polygones):
-    polygon1 = polygones[0]
-    polygon2 = polygones[1]
-    grid2 = GridPointInPolygon(polygon2)
-    grid2.__determining_center_points(50,50)
-    grid2.__center_points_inclusion_test()
-
-    grid1 = GridPointInPolygon(polygon1)
-    grid1.__determining_center_points(10, 10)
-    grid1.center_points_incxlusion_test()
-    print(grid1.is_polygon_include(polygon2))
-    print(grid2.is_polygon_include(polygon1))
-    
 
     
 def main():
@@ -52,14 +23,8 @@ def main():
     """
     for fichier in sys.argv[1:]:
         polygones = read_instance(fichier)
-        # inclusions: list = Find.area_local_vision_ray_cast(polygones)
-        inclusions = Find.area_local_vision(polygones)
-        #print("naif :")
-        # inclusions = trouve_inclusions(polygones)
-        
+        inclusions = Find.area_local_vision(polygones)       
         print(inclusions)
-        #inclusions = test_grid(polygones)
-        #print(inclusions)
 
 if __name__ == "__main__":
     main()

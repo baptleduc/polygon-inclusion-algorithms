@@ -38,7 +38,14 @@ class Cellule:
         self.prec.suiv = self
 
 class ListeTab:
+    """
+    A linked list but with an array where the i-th element is the element of the list with the value i
+    """
+    
     def __init__(self,taille):
+        """
+        initialization of the linked list
+        """
         self.tab = [None] * taille
         self.head = None
 
@@ -46,6 +53,11 @@ class ListeTab:
         return str(self.head)
     
     def insert(self,value):
+        """
+        insert a value at the head of the linked list
+        Args: 
+           value : int the value of the Cellule to insert
+        """
         if not self.head:
             self.head = Cellule(value)
         else:
@@ -53,6 +65,13 @@ class ListeTab:
             self.head = self.head.prec
         self.tab[value] = self.head
     def delete(self,value):
+        """
+        delete the element of the list with the value value and return its childs
+        Args:
+            value : int the value of the Cellule to delete
+        Return:
+            A Cellule object which is the child of the element deleted
+        """
         temp = self.tab[value].suiv
         if self.tab[value].is_alone():
             self.head = None

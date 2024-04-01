@@ -1,7 +1,5 @@
 
 from geo.polygon import Polygon
-from geo.point import Point
-from geo.segment import Segment
 from ray_casting import RayCast
 from grid_point_in_polygon import GridPointInPolygon
 from listWithTab import ListeTab
@@ -17,7 +15,7 @@ class Find:
         Return limits coordinate in abscissa or ordinate of each polygon in polygones sorted 
 
         Args:
-             polygones (tab of Polygon)
+             polygones (array of Polygon)
         
         Returns:
             liste of tuple : (abscissa or ordiate extrem value of polygon i) * (enter or get out 
@@ -35,7 +33,7 @@ class Find:
     def __list_with_area(polygones):
         """
         Args:
-            polygones (tab of Polygon)
+            polygones (array of Polygon)
         Returns;
             liste of Polygone sorted by area
         """
@@ -48,11 +46,12 @@ class Find:
     @staticmethod
     def __potential_inclusions(liste_point,taille):
         """
+        Brows the list of points sorted by value and when it's the first time that we see a polygon we add it to a linked list and when we see it for the second time it is deleted fom the list and all         its childs in an array    
         Args:
-            liste_point : list of tuple of point min and maw of each polygon sorted by value
+            liste_point : list of tuple of point min and max of each polygon sorted by value
             taille : number of polygon 
         Return: 
-            A tab of tab where ith element is a tab of value that represent the polygons where the ith polygon can be inclued in
+            An array of array where ith element is a array of value that represent the polygons where the ith polygon can be inclued in
         """
         currentlist = ListeTab(taille)
         inclusion_possible = [[] for _ in range(len(liste_point)//2)]
@@ -67,9 +66,9 @@ class Find:
     def __intersection(tab1,tab2):
         """
         Args:
-            tab1, tab2 :  tab of tab with the same lenght
+            tab1, tab2 :  array of array with the same lenght
         Returns:
-            A tab where the i-th element is the intersection between the i-th element of tab1 and tab2
+            An array where the i-th element is the intersection between the i-th element of tab1 and tab2
         """
         assert(len(tab1) == len(tab2))
         tab = [[] for _ in range(len(tab1))]
@@ -81,9 +80,9 @@ class Find:
     def area_check(polygones):
         """
         Args: 
-             polygones: tab of Polygon
+             polygones: array of Polygon
         Returns:
-             A tab where the i-th element is the number of polygon that the i-th is inclued in using the area of each polygon to order test
+             An array where the i-th element is the number of polygon that the i-th is inclued in using the area of each polygon to order test
         """
         inclusions : list = [-1 for _ in range(len(polygones))]
         polygones_sorted = sorted(Find.__list_with_area(polygones))
@@ -101,6 +100,14 @@ class Find:
         return inclusions
 
     def area_local_vision(polygones):
+        """
+        use poly_extrem_coord to create to array of potential inclusion for each polygon, one in the horizontal way and the other in the vertival way. Finally the both result are intersected and we 
+        find exctly which polygon is included in the other.
+        
+        Args:
+            polygones: array of Polygon
+        Return:
+            An array where the i-th element represent the polygone that the i-th polygone is inclued in"""
         x = 0
         y = 1
         liste_abscisse = Find.__poly_extrem_coord(polygones,x)
@@ -120,6 +127,9 @@ class Find:
         return inclusions
     
     def area_local_vision_ray_cast(polygones):
+        """
+        Same algorithm then area_local_vision but ray_casting is used to detecte inclusions
+        """
         x = 0
         y = 1
         liste_abscisse = Find.__poly_extrem_coord(polygones,x)
