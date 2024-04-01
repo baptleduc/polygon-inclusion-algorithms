@@ -4,7 +4,6 @@ fichier principal pour la detection des inclusions.
 ce fichier est utilise pour les tests automatiques.
 attention donc lors des modifications.
 """
-import sys
 from geo.tycat import tycat
 from geo.point import Point
 from tycat import read_instance
@@ -29,24 +28,20 @@ def trouve_inclusions(polygones):
     return inclusions
 
 
+
 def test_grid(polygones):
     polygon1 = polygones[0]
-    #tycat(polygon1.segments())
     polygon2 = polygones[1]
     grid2 = GridPointInPolygon(polygon2)
     grid2.__determining_center_points(50,50)
     grid2.__center_points_inclusion_test()
 
-    #tycat(polygon2.segments())
     grid1 = GridPointInPolygon(polygon1)
     grid1.__determining_center_points(10, 10)
     grid1.center_points_incxlusion_test()
     print(grid1.is_polygon_include(polygon2))
     print(grid2.is_polygon_include(polygon1))
     
-    # points = [Point(point) for point in quad_tree.bounding_quadrant.get_arrays()]
-    # tycat(test_point,  list(grid.center_points.values()), polygon1.segments(), polygon2.segments())
-
 
     
 def main():
