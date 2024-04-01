@@ -81,7 +81,7 @@ class GridPointInPolygon:
             y = y_min + i * self.offset_y
             cells_row = []
 
-            for j in range(nb_columns + 2):
+            for j in range(nb_columns + 1):
                 x = x_start + j * self.offset_x
 
                 cell = Cell(x, x + self.offset_x, y, y + self.offset_y)
