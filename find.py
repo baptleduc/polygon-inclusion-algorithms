@@ -164,7 +164,7 @@ class Find:
                         break
                 if algo == "grid":                
                     if tab_grid[polygone2] == None:
-                        tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 21, 21)
+                        tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 30, 30)
                     if tab_grid[polygone2].is_polygon_include(polygones[polygone1]):
                             inclusions[polygone1] = polygone2
                             break
