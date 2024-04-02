@@ -32,8 +32,13 @@ class GridPointInPolygon:
         self.x_min: int
         self.y_min: int
         self.cells: list
+
+        #To display
         self.sure_in = []
         self.sure_out = []
+        self.sure_maybe = []
+
+
         self.__determining_center_points(nb_rows, nb_columns)
         self.__marked_transversed_cells()
         self.__center_points_inclusion_test()
@@ -62,10 +67,10 @@ class GridPointInPolygon:
 
         # Adjust the grid’s bounding box slightly larger than the polygon’s bounding box
         # to avoid problems caused by finite arithmetic.
-        x_min -= 0.01
-        x_max += 0.01
-        y_min -= 0.01
-        y_max += 0.01
+        x_min -= (x_max-x_min) / 1000
+        x_max += (x_max-x_min) / 1000
+        y_min -= (y_max-y_min) / 1000
+        y_max += (y_max-y_min) / 1000
 
         # Calculate the offsets in x and y
         self.offset_x = (x_max - x_min) / nb_columns
@@ -331,7 +336,6 @@ class GridPointInPolygon:
         sum_intersection = 0
 
         all_edges = cellA.edges | cellB.edges
-
         # Iterate through each segments of cellA and cellB
         for segment in all_edges:
             p1, q1 = segment.endpoints
@@ -339,6 +343,7 @@ class GridPointInPolygon:
             if segment.contains(pointB):
                 pointB.is_singular = True
                 pointB.is_include = "MAYBE"
+                self.sure_maybe.append(pointB)
                 return
 
             if self.__do_intersect(
@@ -378,9 +383,15 @@ class GridPointInPolygon:
                         cellA, cellB, cellA.center_point, cellB.center_point
                     )
 
-                    # If cellB.center_point not singular, move on to the next pair
-                    if not cellB.center_point.is_singular:
+                    # If cellB is singular, update cellA's edges.
+                    # This is needed to count the intersections of the segment from pointA to next point pointB' passing through singular pointB.
+                    if cellB.center_point.is_singular:
+                        cellA.edges.update(cellB.edges)
+                    else:
+                        # If  not cellB.center_point.is_singular, move on to the next pair
                         break
+
+                    
 
     def is_point_include(self, point: Point) -> None:
         """

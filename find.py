@@ -138,6 +138,6 @@ class Find:
                             break
         if display :
             for grid in tab_grid:
-                if grid != None:
-                    tycat(polygones,grid.sure_in,grid.sure_out)
+                if grid:
+                    tycat(polygones,grid.sure_in,grid.sure_out, grid.sure_maybe)
         return inclusions
