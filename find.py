@@ -3,6 +3,7 @@ from geo.polygon import Polygon
 from ray_casting import RayCast
 from grid_point_in_polygon import GridPointInPolygon
 from listWithTab import ListeTab
+from geo.tycat import tycat
 
 #variables gloables
 IN = True
@@ -99,7 +100,39 @@ class Find:
                     break
         return inclusions
 
-    def area_local_vision(polygones):
+    # def area_local_vision(polygones):
+    #     """
+    #     use poly_extrem_coord to create to array of potential inclusion for each polygon, one in the horizontal way and the other in the vertival way. Finally the both result are intersected and we 
+    #     find exctly which polygon is included in the other.
+        
+    #     Args:
+    #     polygones: array of Polygon
+    #     Return:
+    #     An array where the i-th element represent the polygone that the i-th polygone is inclued in"""
+    #     x = 0
+    #     y = 1
+    #     # step 1
+    #     # Brows the plan in the horizontal then in the vertival way to determine potential inclusion for each polygon
+    #     liste_abscisse = Find.__poly_extrem_coord(polygones,x)
+    #     liste_ordonne = Find.__poly_extrem_coord(polygones,y)      
+    #     inclusions_possibles_abscisse = Find.__potential_inclusions(liste_abscisse,len(polygones))
+    #     inclusions_possibles_ordonne =  Find.__potential_inclusions(liste_ordonne,len(polygones))
+    #     # intersection of results
+    #     inclusions_possibles =Find.__intersection(inclusions_possibles_ordonne, inclusions_possibles_abscisse)
+    #     tab_grid = [None for _ in range(len(polygones))]
+    #     inclusions : list = [-1 for _ in range(len(polygones))]
+    #     # state 2
+    #     # Each polygon is tested whith other polygon determined in inclusion_possible
+    #     for polygone1 in range(len(inclusions_possibles)):
+    #         for polygone2 in inclusions_possibles[polygone1]:
+    #             if tab_grid[polygone2] == None:
+    #                 tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 20, 20)
+    #             if tab_grid[polygone2].is_polygon_include(polygones[polygone1]):
+    #                 inclusions[polygone1] = polygone2
+    #                 break
+    #     return inclusions
+    
+    def area_local_vision(polygones, algo, display = False):
         """
         use poly_extrem_coord to create to array of potential inclusion for each polygon, one in the horizontal way and the other in the vertival way. Finally the both result are intersected and we 
         find exctly which polygon is included in the other.
@@ -112,6 +145,7 @@ class Find:
         y = 1
         # step 1
         # Brows the plan in the horizontal then in the vertival way to determine potential inclusion for each polygon
+        assert(algo == "raycast" or algo == "grid")
         liste_abscisse = Find.__poly_extrem_coord(polygones,x)
         liste_ordonne = Find.__poly_extrem_coord(polygones,y)      
         inclusions_possibles_abscisse = Find.__potential_inclusions(liste_abscisse,len(polygones))
@@ -124,13 +158,22 @@ class Find:
         # Each polygon is tested whith other polygon determined in inclusion_possible
         for polygone1 in range(len(inclusions_possibles)):
             for polygone2 in inclusions_possibles[polygone1]:
-                if tab_grid[polygone2] == None:
-                    tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 20, 20)
-                if tab_grid[polygone2].is_polygon_include(polygones[polygone1]):
-                    inclusions[polygone1] = polygone2
-                    break
+                if algo == "raycast":
+                    if RayCast.is_include(polygones[polygone1],polygones[polygone2]):
+                        inclusions[polygone1] = polygone2
+                        break
+                if algo == "grid":                
+                    if tab_grid[polygone2] == None:
+                        tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 21, 21)
+                    if tab_grid[polygone2].is_polygon_include(polygones[polygone1]):
+                            inclusions[polygone1] = polygone2
+                            break
+        if display :
+            for grid in tab_grid:
+                if grid != None:
+                    tycat(polygones,grid.sure_in,grid.sure_out)
         return inclusions
-    
+
     def area_local_vision_ray_cast(polygones):
         """
         Same algorithm then area_local_vision but ray_casting is used to detecte inclusions
@@ -141,7 +184,6 @@ class Find:
         liste_ordonne = Find.__poly_extrem_coord(polygones,y)      
         inclusions : list = [-1 for _ in range(len(polygones))]
         inclusions_possibles_abscisse = Find.__potential_inclusions(liste_abscisse,len(polygones))
-        
         inclusions_possibles_ordonne =  Find.__potential_inclusions(liste_ordonne,len(polygones))
         inclusions_possibles =Find.__intersection(inclusions_possibles_ordonne, inclusions_possibles_abscisse)
         for polygone1 in range(len(inclusions_possibles)):
@@ -150,3 +192,5 @@ class Find:
                     inclusions[polygone1] = polygone2
                     break
         return inclusions
+
+    

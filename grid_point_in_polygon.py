@@ -5,7 +5,6 @@ from geo.point import Point
 import math
 from cell import Cell
 
-
 class GridPointInPolygon:
     """
     Point-in-Polygon tests by determining grid center
@@ -33,7 +32,8 @@ class GridPointInPolygon:
         self.x_min: int
         self.y_min: int
         self.cells: list
-
+        self.sure_in = []
+        self.sure_out = []
         self.__determining_center_points(nb_rows, nb_columns)
         self.__marked_transversed_cells()
         self.__center_points_inclusion_test()
@@ -92,10 +92,11 @@ class GridPointInPolygon:
                 center_point_x, center_point_y = center_point.coordinates
 
                 if center_point_x <= x_min or center_point_x >= x_max:
+                    self.sure_out.append(center_point)
                     center_point.is_include = "OUT"
                     center_point.is_singular = False
-
             self.cells.append(cells_row)
+            
 
     def dda_to_cells(self, segment: Segment) -> None:
         """
@@ -348,8 +349,10 @@ class GridPointInPolygon:
         if (pointA.is_include == "OUT" and sum_intersection % 2 == 1) or (
             pointA.is_include == "IN" and sum_intersection % 2 == 0
         ):
+            self.sure_in.append(pointB)
             pointB.is_include = "IN"
         else:
+            self.sure_out.append(pointB)
             pointB.is_include = "OUT"
         pointB.is_singular = False
         return
@@ -407,6 +410,7 @@ class GridPointInPolygon:
                 cell_with_point, cell_with_point, cell_with_point.center_point, point
             )
             return
+        self.sure_out(point)
         point.is_include = "OUT"
 
     def is_polygon_include(self, test_polygon: Polygon) -> bool:

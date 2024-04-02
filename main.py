@@ -7,6 +7,7 @@ attention donc lors des modifications.
 from geo.tycat import tycat
 from geo.point import Point
 from tycat import read_instance
+from tycat import print_polygons
 from ray_casting import RayCast
 from find import Find
 from grid_point_in_polygon import GridPointInPolygon
@@ -23,7 +24,7 @@ def main():
     """
     for fichier in sys.argv[1:]:
         polygones = read_instance(fichier)
-        inclusions = Find.area_local_vision(polygones)       
+        inclusions = Find.area_local_vision(polygones, "grid")
         print(inclusions)
 
 if __name__ == "__main__":
