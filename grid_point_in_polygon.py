@@ -62,10 +62,10 @@ class GridPointInPolygon:
 
         # Adjust the grid’s bounding box slightly larger than the polygon’s bounding box
         # to avoid problems caused by finite arithmetic.
-        x_min -= 0.2
-        x_max += 0.2
-        y_min -= 0.2
-        y_max += 0.2
+        x_min -= 0.01
+        x_max += 0.01
+        y_min -= 0.01
+        y_max += 0.01
 
         # Calculate the offsets in x and y
         self.offset_x = (x_max - x_min) / nb_columns
