@@ -24,7 +24,7 @@ def main():
     """
     for fichier in sys.argv[1:]:
         polygones = read_instance(fichier)
-        inclusions = Find.area_local_vision(polygones, "grid")
+        inclusions = Find.area_local_vision(polygones, "grid", display_center_point = False, display_fast_voxel = False)
         print(inclusions)
 
 if __name__ == "__main__":

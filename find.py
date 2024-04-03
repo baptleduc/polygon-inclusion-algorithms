@@ -100,7 +100,7 @@ class Find:
                     break
         return inclusions
     
-    def area_local_vision(polygones, algo, display = False):
+    def area_local_vision(polygones, algo, display_center_point = False, display_fast_voxel = False):
         """
         use poly_extrem_coord to create to array of potential inclusion for each polygon, one in the horizontal way and the other in the vertival way. Finally the both result are intersected and we 
         find exctly which polygon is included in the other.
@@ -133,11 +133,30 @@ class Find:
                 if algo == "grid":                
                     if tab_grid[polygone2] == None:
                         tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 20, 20)
+                        # display for debug
+                        affiche_fast_voxel = []
+                        if display_fast_voxel:
+                            for grid in tab_grid:
+                                if grid:
+                                    for temp_cell in grid.cells:
+                                        for cell in temp_cell:
+                                            if cell.edges :
+                                                affiche_fast_voxel.append(cell.cell_polygon)
+                        
                     if tab_grid[polygone2].is_polygon_include(polygones[polygone1]):
                             inclusions[polygone1] = polygone2
                             break
-        if display :
+        #display for debug
+        if display_fast_voxel and display_center_point :
+            for grid in tab_grid:
+                if grid:
+                    tycat(polygones,grid.sure_in,grid.sure_out, grid.sure_maybe, affiche_fast_voxel)
+        elif display_fast_voxel and not display_center_point:
+            tycat(polygones, affiche_fast_voxel)
+        elif not display_fast_voxel and display_center_point:
             for grid in tab_grid:
                 if grid:
                     tycat(polygones,grid.sure_in,grid.sure_out, grid.sure_maybe)
+                    
+                
         return inclusions

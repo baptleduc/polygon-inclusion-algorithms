@@ -67,10 +67,10 @@ class GridPointInPolygon:
 
         # Adjust the grid’s bounding box slightly larger than the polygon’s bounding box
         # to avoid problems caused by finite arithmetic.
-        x_min -= (x_max-x_min) / 1000
-        x_max += (x_max-x_min) / 1000
-        y_min -= (y_max-y_min) / 1000
-        y_max += (y_max-y_min) / 1000
+        x_min -= (x_max-x_min)   /1000
+        x_max += (x_max-x_min)   / 1000
+        y_min -= (y_max-y_min)   / 1000
+        y_max += (y_max-y_min)   / 1000
 
         # Calculate the offsets in x and y
         self.offset_x = (x_max - x_min) / nb_columns
@@ -217,38 +217,31 @@ class GridPointInPolygon:
             t_max_y = t_delta_y * FRAC0(y1)
 
         step_x, step_y = (
-            segment_direction_x * self.offset_x ,
-            segment_direction_y * self.offset_y ,
+            segment_direction_x  ,
+            segment_direction_y  ,
         )
         x, y = x1, y1
         while 1:
+            
             if (
                 current_cell.x_min <= x2 <= current_cell.x_max
                 and current_cell.y_min <= y2 <= current_cell.y_max
             ):
                 break
-            #if t_max_x == t_max_y:
-                #print("egal")
-            if t_max_x <= t_max_y:
+            if t_max_x < t_max_y:
                 t_max_x += t_delta_x
-                x += step_x
-                current_X_index, current_Y_index = self.__get_idx_cell_containing_point(
-                    x, y
-                )
+                current_X_index += step_x
                 if not (0 <= current_X_index < len(self.cells[0])):
                     break
-                current_cell = self.cells[current_Y_index][current_X_index]
+                current_cell = self.cells[current_Y_index][current_X_index ]
                 current_cell.edges.add(segment)
 
-            if t_max_x >= t_max_y:
+            else:
                 t_max_y += t_delta_y
-                y += step_y
-                current_X_index, current_Y_index = self.__get_idx_cell_containing_point(
-                    x, y
-                )
+                current_Y_index += step_y
                 if not (0 <= current_Y_index < len(self.cells)):
                     break    
-                current_cell = self.cells[current_Y_index][current_X_index]
+                current_cell = self.cells[current_Y_index ][current_X_index  ]
                 current_cell.edges.add(segment)
 
     def __do_intersect(self, p1, q1, p2, q2):
