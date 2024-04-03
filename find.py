@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 from geo.polygon import Polygon
 from ray_casting import RayCast

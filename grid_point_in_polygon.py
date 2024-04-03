@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from geo.polygon import Polygon
 from geo.quadrant import Quadrant
 from geo.segment import Segment

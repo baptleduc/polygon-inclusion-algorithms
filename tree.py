@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from geo.polygon import Polygon
 from geo.point import Point
 from ray_casting import RayCast

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from geo.point import Point
 from geo.polygon import Polygon
 class Cell:
