@@ -217,8 +217,8 @@ class GridPointInPolygon:
             t_max_y = t_delta_y * FRAC0(y1)
 
         step_x, step_y = (
-            segment_direction_x * self.offset_x / 100,
-            segment_direction_y * self.offset_y / 100,
+            segment_direction_x * self.offset_x ,
+            segment_direction_y * self.offset_y ,
         )
         x, y = x1, y1
         while 1:
@@ -227,7 +227,9 @@ class GridPointInPolygon:
                 and current_cell.y_min <= y2 <= current_cell.y_max
             ):
                 break
-            if t_max_x < t_max_y:
+            #if t_max_x == t_max_y:
+                #print("egal")
+            if t_max_x <= t_max_y:
                 t_max_x += t_delta_x
                 x += step_x
                 current_X_index, current_Y_index = self.__get_idx_cell_containing_point(
@@ -235,17 +237,19 @@ class GridPointInPolygon:
                 )
                 if not (0 <= current_X_index < len(self.cells[0])):
                     break
-            else:
+                current_cell = self.cells[current_Y_index][current_X_index]
+                current_cell.edges.add(segment)
+
+            if t_max_x >= t_max_y:
                 t_max_y += t_delta_y
                 y += step_y
                 current_X_index, current_Y_index = self.__get_idx_cell_containing_point(
                     x, y
                 )
                 if not (0 <= current_Y_index < len(self.cells)):
-                    break
-
-            current_cell = self.cells[current_Y_index][current_X_index]
-            current_cell.edges.add(segment)
+                    break    
+                current_cell = self.cells[current_Y_index][current_X_index]
+                current_cell.edges.add(segment)
 
     def __do_intersect(self, p1, q1, p2, q2):
         """
