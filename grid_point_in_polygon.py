@@ -13,7 +13,7 @@ class GridPointInPolygon:
     points in advance.
     """
 
-    def __init__(self, polygon, nb_rows, nb_columns) -> None:
+    def __init__(self, polygon, nb_cell) -> None:
         """
         Initialize the GridPointInPolygon object with the given polygon.
 
@@ -34,6 +34,7 @@ class GridPointInPolygon:
         self.x_min: int
         self.y_min: int
         self.cells: list
+        self.first_column: list
 
         #To display
         self.sure_in = []
@@ -41,11 +42,12 @@ class GridPointInPolygon:
         self.sure_maybe = []
 
 
-        self.__determining_center_points(nb_rows, nb_columns)
+
+        self.__determining_center_points(nb_cell)
         self.__marked_transversed_cells()
         self.__center_points_inclusion_test()
 
-    def __determining_center_points(self, nb_rows: int, nb_columns: int) -> None:
+    def __determining_center_points(self, nb_cell) -> None:
         """
         Determine the center points of a grid within the bounding quadrant.
 
@@ -60,19 +62,25 @@ class GridPointInPolygon:
             ValueError: If nb_rows or nb_columns is less than or equal to zero.
         """
 
-        if nb_rows <= 0 or nb_columns <= 0:
-            raise ValueError(
-                "The number of rows and columns must be greater than zero."
-            )
+        # if nb_rows <= 0 or nb_columns <= 0:
+        #     raise ValueError(
+        #         "The number of rows and columns must be greater than zero."
+        #     )
 
         (x_min, y_min), (x_max, y_max) = self.bounding_quadrant.get_arrays()
 
         # Adjust the grid’s bounding box slightly larger than the polygon’s bounding box
         # to avoid problems caused by finite arithmetic.
-        x_min -= (x_max-x_min)   /1000
-        x_max += (x_max-x_min)   / 1000
-        y_min -= (y_max-y_min)   / 1000
-        y_max += (y_max-y_min)   / 1000
+        x_min -= (x_max-x_min)   / 10
+        x_max += (x_max-x_min)   / 10
+        y_min -= (y_max-y_min)   / 10
+        y_max += (y_max-y_min)   / 10
+        
+        k = 1 
+        width = (x_max - x_min)
+        height = (y_max - y_min)
+        nb_rows = int (k * (nb_cell * width / height) ** 1/2)
+        nb_columns = int ( k * (nb_cell * height/ width) ** 1/2)
 
         # Calculate the offsets in x and y
         self.offset_x = (x_max - x_min) / nb_columns
@@ -83,6 +91,7 @@ class GridPointInPolygon:
         self.x_min = x_start
 
         self.cells = []
+        self.first_column = []
 
         for i in range(nb_rows):
             y = y_min + i * self.offset_y
@@ -92,7 +101,7 @@ class GridPointInPolygon:
                 x = x_start + j * self.offset_x
 
                 cell = Cell(x, x + self.offset_x, y, y + self.offset_y)
-                cells_row.append(cell)
+                cells_row.append(cell) if j != 0 else self.first_column.append(cell)
 
                 # Create a central Point and
                 center_point = cell.center_point
@@ -235,7 +244,7 @@ class GridPointInPolygon:
                 current_X_index += step_x
                 if not (0 <= current_X_index < len(self.cells[0])):
                     break
-                current_cell = self.cells[current_Y_index][current_X_index ]
+                current_cell = self.cells[current_Y_index][current_X_index]
                 current_cell.edges.add(segment)
 
             else:
@@ -243,7 +252,7 @@ class GridPointInPolygon:
                 current_Y_index += step_y
                 if not (0 <= current_Y_index < len(self.cells)):
                     break    
-                current_cell = self.cells[current_Y_index ][current_X_index  ]
+                current_cell = self.cells[current_Y_index][current_X_index]
                 current_cell.edges.add(segment)
 
     def __do_intersect(self, p1, q1, p2, q2):
@@ -371,17 +380,19 @@ class GridPointInPolygon:
         num_columns = len(self.cells[0])
 
         for row_idx, row in enumerate(self.cells):
+            for col_idx in range(len(row) + 1):
+                if col_idx == 0 : #first_column case
+                    cellA = self.first_column[row_idx]
+                else :
+                    cellA = self.cells[row_idx][col_idx - 1]
+                    if cellA.center_point.is_singular:
+                        continue
 
-            for col_idx, cellA in enumerate(row):
-                if cellA.center_point.is_singular:
-                    continue
-
-                for next_col_idx in range(col_idx + 1, num_columns):
+                for next_col_idx in range(col_idx , num_columns):
                     cellB = self.cells[row_idx][next_col_idx]
                     self.__inclusion_test(
                         cellA, cellB, cellA.center_point, cellB.center_point
                     )
-
                     # If cellB is singular, update cellA's edges.
                     # This is needed to count the intersections of the segment from pointA to next point pointB' passing through singular pointB.
                     if cellB.center_point.is_singular:
@@ -420,7 +431,7 @@ class GridPointInPolygon:
                 cell_with_point, cell_with_point, cell_with_point.center_point, point
             )
             return
-        self.sure_out(point)
+        self.sure_out.append(point)
         point.is_include = "OUT"
 
     def is_polygon_include(self, test_polygon: Polygon) -> bool:
