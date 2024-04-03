@@ -95,13 +95,13 @@ class Find:
                 _,polygone1 = polygones_sorted[i]
                 _,polygone2 = polygones_sorted[j]
                 if tab_grid[polygone2] == None:
-                    tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 20, 20)
+                    tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 20)
                 if tab_grid[polygone2].is_polygon_include(polygones[polygone1]):
                     inclusions[polygone1] = polygone2
                     break
         return inclusions
     
-    def area_local_vision(polygones, algo, display_center_point = False, display_fast_voxel = False):
+    def area_local_vision(polygones, algo, display_center_point = False, display_fast_voxel = False, display_each_state = False):
         """
         use poly_extrem_coord to create to array of potential inclusion for each polygon, one in the horizontal way and the other in the vertival way. Finally the both result are intersected and we 
         find exctly which polygon is included in the other.
@@ -133,7 +133,22 @@ class Find:
                         break
                 if algo == "grid":                
                     if tab_grid[polygone2] == None:
-                        tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 20, 20)
+                        tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 300)
+                        if display_each_state:
+                            for grid in tab_grid:
+                                if grid:
+                                    temp = []
+                                    temp_pass = []
+                                    for i in grid.cells:
+                                        for j in i:
+                                            if j.edges :
+                                                temp_pass.append(j.cell_polygon)
+                                                temp_pass.append(j.center_point)
+                                            else:
+                                                temp.append(j.cell_polygon)
+                                                temp.append(j.center_point)
+
+                                    tycat(temp,grid.polygon,grid.sure_out,temp_pass)
                         # display for debug
                         affiche_fast_voxel = []
                         if display_fast_voxel:

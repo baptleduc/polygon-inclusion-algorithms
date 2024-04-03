@@ -4,9 +4,10 @@ from geo.polygon import Polygon
 from geo.quadrant import Quadrant
 from geo.segment import Segment
 from geo.point import Point
-import math
+from geo.tycat import tycat
 from cell import Cell
-
+from math import floor
+from math import sqrt
 class GridPointInPolygon:
     """
     Point-in-Polygon tests by determining grid center
@@ -35,6 +36,9 @@ class GridPointInPolygon:
         self.y_min: int
         self.cells: list
         self.first_column: list
+        self.nb_rows: int
+        self.nb_columns : int
+        self.nb_cell = nb_cell
 
         #To display
         self.sure_in = []
@@ -43,11 +47,11 @@ class GridPointInPolygon:
 
 
 
-        self.__determining_center_points(nb_cell)
+        self.__determining_center_points()
         self.__marked_transversed_cells()
         self.__center_points_inclusion_test()
 
-    def __determining_center_points(self, nb_cell) -> None:
+    def __determining_center_points(self) -> None:
         """
         Determine the center points of a grid within the bounding quadrant.
 
@@ -71,49 +75,50 @@ class GridPointInPolygon:
 
         # Adjust the grid’s bounding box slightly larger than the polygon’s bounding box
         # to avoid problems caused by finite arithmetic.
-        x_min -= (x_max-x_min)   / 10
-        x_max += (x_max-x_min)   / 10
-        y_min -= (y_max-y_min)   / 10
-        y_max += (y_max-y_min)   / 10
+        x_min -= (x_max-x_min)  / 3
+        x_max += (x_max-x_min)  /3
+        y_min -= (y_max-y_min)  /3
+        y_max += (y_max-y_min)   /3
         
+        # Calculate the number of rows and columns
         k = 1 
-        width = (x_max - x_min)
-        height = (y_max - y_min)
-        nb_rows = int (k * (nb_cell * width / height) ** 1/2)
-        nb_columns = int ( k * (nb_cell * height/ width) ** 1/2)
+        self.height = (x_max - x_min)
+        self.width = (y_max - y_min)
+        self.nb_rows = int (k * sqrt(self.nb_cell * self.width / self.width))   
+        self.nb_columns = int ( k * sqrt(self.nb_cell * self.height/ self.height)) 
 
         # Calculate the offsets in x and y
-        self.offset_x = (x_max - x_min) / nb_columns
-        self.offset_y = (y_max - y_min) / nb_rows
-
-        x_start = x_min - self.offset_x
+        self.offset_x = (x_max - x_min) / self.nb_rows
+        self.offset_y = (y_max - y_min) / self.nb_columns
+        x_start = x_min         
         self.y_min = y_min
         self.x_min = x_start
-
         self.cells = []
         self.first_column = []
 
-        for i in range(nb_rows):
+        for i in range(self.nb_rows):
             y = y_min + i * self.offset_y
             cells_row = []
 
-            for j in range(nb_columns + 1):
+            for j in range(self.nb_columns):
                 x = x_start + j * self.offset_x
 
                 cell = Cell(x, x + self.offset_x, y, y + self.offset_y)
-                cells_row.append(cell) if j != 0 else self.first_column.append(cell)
+                cells_row.append(cell) 
 
                 # Create a central Point and
                 center_point = cell.center_point
                 center_point_x, center_point_y = center_point.coordinates
-
-                if center_point_x <= x_min or center_point_x >= x_max:
+                (x_min_poly, _), (x_max_poly, _) = self.bounding_quadrant.get_arrays()
+                if center_point_x <= x_min_poly or center_point_x >= x_max_poly:
+                    self.sure_out.append(center_point)
                     self.sure_out.append(center_point)
                     center_point.is_include = "OUT"
+                    self.sure_out.append(center_point)
                     center_point.is_singular = False
+                    
             self.cells.append(cells_row)
-            
-
+        
     def dda_to_cells(self, segment: Segment) -> None:
         """
         [UNUSED]
@@ -145,7 +150,6 @@ class GridPointInPolygon:
                 and 0 <= idx_cell_crossed_y <= len(self.cells) - 1
             ):
                 self.cells[idx_cell_crossed_y][idx_cell_crossed_x].edges.add(segment)
-
             x += dx
             y += dy
             i += 1
@@ -169,64 +173,53 @@ class GridPointInPolygon:
             tuple: A tuple (idx_x, idx_y) representing the indices of the cell containing the point.
         """
 
-        idx_cell_crossed_x = math.floor((x - self.x_min) / self.offset_x)
-        idx_cell_crossed_y = math.floor((y - self.y_min) / self.offset_y)
+        idx_cell_crossed_x = floor((x - self.x_min) / self.offset_x)
+        idx_cell_crossed_y = floor((y - self.y_min) / self.offset_y)
         return idx_cell_crossed_x, idx_cell_crossed_y
 
     def segment_grid_traversal(self, segment) -> None:
         """
         Traverse the grid along a segment, adding the segment to every cell it intersects by
         using Fast Voxel Traversal Algorithm.
-
         Args:
             segment (Segment) : The segment to traverse
         """
-
         def SIGN(x):
             return 1 if x > 0 else -1 if x < 0 else 0
-
         def FRAC1(x):
-            return 1.0 - (x - math.floor(x))
-
+            return 1.0 - (x - floor(x))
         def FRAC0(x):
-            return x - math.floor(x)
-
+            return x - floor(x)
         (x1, y1), (x2, y2) = (
             segment.endpoints[0].coordinates,
             segment.endpoints[1].coordinates,
         )
         segment_dx, segment_dy = (x2 - x1), (y2 - y1)
         segment_direction_x, segment_direction_y = SIGN(segment_dx), SIGN(segment_dy)
-
         # Add the segment to the cell initially containing the point (x1, y1).
         current_X_index, current_Y_index = self.__get_idx_cell_containing_point(x1, y1)
         current_cell: Cell = self.cells[current_Y_index][current_X_index]
         current_cell.edges.add(segment)
-
         if segment_direction_x != 0:
             t_delta_x = min(
                 segment_direction_x * self.offset_x / segment_dx, 10000000.0
             )
         else:
             t_delta_x = 10000000.0
-
         if segment_direction_x > 0:
             t_max_x = t_delta_x * FRAC1(x1)
         else:
             t_max_x = t_delta_x * FRAC0(x1)
-
         if segment_direction_y != 0:
             t_delta_y = min(
                 segment_direction_y * self.offset_y / segment_dy, 10000000.0
             )
         else:
             t_delta_y = 10000000.0
-
         if segment_direction_y > 0:
             t_max_y = t_delta_y * FRAC1(y1)
         else:
             t_max_y = t_delta_y * FRAC0(y1)
-
         step_x, step_y = (
             segment_direction_x  ,
             segment_direction_y  ,
@@ -244,15 +237,14 @@ class GridPointInPolygon:
                 current_X_index += step_x
                 if not (0 <= current_X_index < len(self.cells[0])):
                     break
-                current_cell = self.cells[current_Y_index][current_X_index]
+                current_cell = self.cells[current_Y_index][current_X_index ]
                 current_cell.edges.add(segment)
-
             else:
                 t_max_y += t_delta_y
                 current_Y_index += step_y
                 if not (0 <= current_Y_index < len(self.cells)):
                     break    
-                current_cell = self.cells[current_Y_index][current_X_index]
+                current_cell = self.cells[current_Y_index ][current_X_index  ]
                 current_cell.edges.add(segment)
 
     def __do_intersect(self, p1, q1, p2, q2):
@@ -380,13 +372,10 @@ class GridPointInPolygon:
         num_columns = len(self.cells[0])
 
         for row_idx, row in enumerate(self.cells):
-            for col_idx in range(len(row) + 1):
-                if col_idx == 0 : #first_column case
-                    cellA = self.first_column[row_idx]
-                else :
-                    cellA = self.cells[row_idx][col_idx - 1]
-                    if cellA.center_point.is_singular:
-                        continue
+            for col_idx in range(len(row)):
+                cellA = self.cells[row_idx][col_idx - 1]
+                if cellA.center_point.is_singular:
+                    continue
 
                 for next_col_idx in range(col_idx , num_columns):
                     cellB = self.cells[row_idx][next_col_idx]
