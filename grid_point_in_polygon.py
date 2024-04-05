@@ -8,6 +8,10 @@ from geo.tycat import tycat
 from cell import Cell
 from math import floor
 from math import sqrt
+from math import cos
+from math import sin
+from math import atan
+from math import pi
 class GridPointInPolygon:
     """
     Point-in-Polygon tests by determining grid center
@@ -72,24 +76,29 @@ class GridPointInPolygon:
         #     )
 
         (x_min, y_min), (x_max, y_max) = self.bounding_quadrant.get_arrays()
-
+        #test
+        x_max = x_min + max(x_max - x_min, y_max - y_min)
+        y_max = y_min + max(x_max - x_min, y_max - y_min) 
         # Adjust the grid’s bounding box slightly larger than the polygon’s bounding box
         # to avoid problems caused by finite arithmetic.
         x_min -= (x_max-x_min)  / 3
         x_max += (x_max-x_min)  /3
-        y_min -= (y_max-y_min)  /3
         y_max += (y_max-y_min)   /3
+        y_min -= (y_max-y_min)   /3
         
         # Calculate the number of rows and columns
         k = 1 
         self.height = (x_max - x_min)
         self.width = (y_max - y_min)
         self.nb_rows = int (k * sqrt(self.nb_cell * self.width / self.width))   
-        self.nb_columns = int ( k * sqrt(self.nb_cell * self.height/ self.height)) 
-
+        self.nb_columns = int ( k * sqrt(self.nb_cell * self.height/ self.height))
+        #tests
+        # self.nb_rows = 20
+        # self.nb_columns = 20
         # Calculate the offsets in x and y
         self.offset_x = (x_max - x_min) / self.nb_rows
-        self.offset_y = (y_max - y_min) / self.nb_columns
+        self.offset_y = self.offset_x
+        self.nb_cell = self.nb_columns * self.nb_rows
         x_start = x_min         
         self.y_min = y_min
         self.x_min = x_start
@@ -182,7 +191,7 @@ class GridPointInPolygon:
         Traverse the grid along a segment, adding the segment to every cell it intersects by
         using Fast Voxel Traversal Algorithm.
         Args:
-            segment (Segment) : The segment to traverse
+            segment (Segment) : The segment to traverse form: Ax + b
         """
         def SIGN(x):
             return 1 if x > 0 else -1 if x < 0 else 0
@@ -190,63 +199,90 @@ class GridPointInPolygon:
             return 1.0 - (x - floor(x))
         def FRAC0(x):
             return x - floor(x)
-        (x1, y1), (x2, y2) = (
+        ((x1, y1), (x2, y2)) = (
             segment.endpoints[0].coordinates,
             segment.endpoints[1].coordinates,
         )
+        if x2 < x1 :
+            (x1, y1),(x2,y2) =( x2, y2),(x1,y1)
+            
         segment_dx, segment_dy = (x2 - x1), (y2 - y1)
-        segment_direction_x, segment_direction_y = SIGN(segment_dx), SIGN(segment_dy)
+        (segment_direction_x, segment_direction_y) = (SIGN(segment_dx), SIGN(segment_dy))
+        segment_a = segment_dy / segment_dx if SIGN(segment_dx) != 0 else None
+        segment_angle = atan(segment_a) if segment_a is not None else pi/2
+        #segment_b = y1 - segment_a * x1 if segment_a is not None else -float('inf')
+        step_x, step_y = (
+            1  ,
+            segment_direction_y  ,
+        )
         # Add the segment to the cell initially containing the point (x1, y1).
         current_X_index, current_Y_index = self.__get_idx_cell_containing_point(x1, y1)
         current_cell: Cell = self.cells[current_Y_index][current_X_index]
         current_cell.edges.add(segment)
-        if segment_direction_x != 0:
-            t_delta_x = min(
-                segment_direction_x * self.offset_x / segment_dx, 10000000.0
-            )
+        if not segment_a:
+            if segment_a is None:
+                
+                t_delta_x =float('inf')
+                t_delta_y = self.offset_y
+                t_max_y = current_cell.y_max - y1
+                t_max_x = float('inf')
+                
+            else :
+                t_delta_x = self.offset_x
+                t_delta_y = float('inf')
+                t_max_x = current_cell.x_max - x1
+                t_max_y = float('inf')
+                
         else:
-            t_delta_x = 10000000.0
-        if segment_direction_x > 0:
-            t_max_x = t_delta_x * FRAC1(x1)
-        else:
-            t_max_x = t_delta_x * FRAC0(x1)
-        if segment_direction_y != 0:
-            t_delta_y = min(
-                segment_direction_y * self.offset_y / segment_dy, 10000000.0
-            )
-        else:
-            t_delta_y = 10000000.0
-        if segment_direction_y > 0:
-            t_max_y = t_delta_y * FRAC1(y1)
-        else:
-            t_max_y = t_delta_y * FRAC0(y1)
-        step_x, step_y = (
-            segment_direction_x  ,
-            segment_direction_y  ,
-        )
-        x, y = x1, y1
+            t_max_x = abs((current_cell.x_max - x1) / cos(segment_angle))
+            t_max_y = abs((current_cell.y_max - y1) / sin(segment_angle))
+            t_delta_x = abs(self.offset_x / cos(segment_angle))
+            t_delta_y = abs(self.offset_y / sin(segment_angle))
+                      
         while 1:
-            
-            if (
-                current_cell.x_min <= x2 <= current_cell.x_max
-                and current_cell.y_min <= y2 <= current_cell.y_max
-            ):
+            #print(t_max_x, t_max_y)
+            if (segment_direction_y >= 0 and x2 <= current_cell.x_max
+                and y2 <= current_cell.y_max) or (segment_direction_y <= 0
+                and x2 <= current_cell.x_max and y2 >= current_cell.y_min):
                 break
-            if t_max_x < t_max_y:
+            if t_max_x <= t_max_y:
                 t_max_x += t_delta_x
                 current_X_index += step_x
-                if not (0 <= current_X_index < len(self.cells[0])):
-                    break
-                current_cell = self.cells[current_Y_index][current_X_index ]
-                current_cell.edges.add(segment)
-            else:
+                if not (0 <= current_X_index < len(self.cells)):
+                    break    
+            else :
                 t_max_y += t_delta_y
                 current_Y_index += step_y
                 if not (0 <= current_Y_index < len(self.cells)):
                     break    
-                current_cell = self.cells[current_Y_index ][current_X_index  ]
-                current_cell.edges.add(segment)
+            current_cell = self.cells[current_Y_index ][current_X_index]
+            #print(current_X_index, current_Y_index)
+            current_cell.edges.add(segment)
 
+                    # coeff_dir = segment_dy / segment_dx if segment_dx != 0 else 0
+        # end_x, end_y = self.__get_idx_cell_containing_point(x2, y2)
+        # end_cell: Cell = self.cells[end_y][end_x]
+        # print("begin ", current_X_index, current_Y_index)
+        # print("end ",end_x, end_y)
+        # print(coeff_dir)
+        # current_cell.edges.add(segment)
+        # x_temp = x1
+        # print(self.offset_x)
+        # pas = self.offset_x / 10 * segment_direction_x
+        # print(pas)
+        # while current_cell != end_cell:
+        #     x_temp += pas
+        #     y_temp = y1 + coeff_dir * (x_temp) if segment_dx != 0 else y1
+        #     print(y_temp)
+        #     print(x_temp // self.offset_x, x_temp // self.offset_y)
+        #     current_X_index, current_Y_index = self.__get_idx_cell_containing_point(x_temp,y_temp)
+        #     print(current_X_index, current_Y_index)
+        #     if abs(current_X_index) > self.nb_columns or abs(current_Y_index) > self.nb_rows:
+        #         break
+        #     current_cell = self.cells[current_Y_index][current_X_index]
+        #     current_cell.edges.add(segment)
+
+        #init t_max and t_delta
     def __do_intersect(self, p1, q1, p2, q2):
         """
         Check if line segments p1q1 and p2q2 intersect.
