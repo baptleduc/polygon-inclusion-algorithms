@@ -12,6 +12,7 @@ from math import cos
 from math import sin
 from math import atan
 from math import pi
+import time
 class GridPointInPolygon:
     """
     Point-in-Polygon tests by determining grid center
@@ -74,7 +75,7 @@ class GridPointInPolygon:
         #     raise ValueError(
         #         "The number of rows and columns must be greater than zero."
         #     )
-
+        start = time.time()
         (x_min, y_min), (x_max, y_max) = self.bounding_quadrant.get_arrays()
         #test
         x_max = x_min + max(x_max - x_min, y_max - y_min)
@@ -93,8 +94,8 @@ class GridPointInPolygon:
         self.nb_rows = int (k * sqrt(self.nb_cell * self.width / self.height))   
         self.nb_columns = int ( k * sqrt(self.nb_cell * self.height/ self.width))
         #tests
-        self.nb_rows = 20
-        self.nb_columns = 20
+        # self.nb_rows = 19
+        # self.nb_columns = 19
         # Calculate the offsets in x and y
         self.offset_x = (x_max - x_min) / self.nb_columns
         self.offset_y = (y_max - y_min) / self.nb_rows
@@ -125,7 +126,7 @@ class GridPointInPolygon:
                     center_point.is_singular = False
                     
             self.cells.append(cells_row)
-        
+        end = time.time()
     def dda_to_cells(self, segment: Segment) -> None:
         """
         [UNUSED]
@@ -191,6 +192,7 @@ class GridPointInPolygon:
         Args:
             segment (Segment) : The segment to traverse form: Ax + b
         """
+        start = time.time()
         def SIGN(x):
             return 1 if x > 0 else -1 if x < 0 else 0
         def FRAC1(x):
@@ -216,10 +218,11 @@ class GridPointInPolygon:
         # Add the segment to the cell initially containing the point (x1, y1).
         current_X_index, current_Y_index = self.__get_idx_cell_containing_point(x1, y1)
         current_cell: Cell = self.cells[current_Y_index][current_X_index]
+        end_X_index, end_Y_index = self.__get_idx_cell_containing_point(x2, y2)
+        end_cell: Cell = self.cells[end_Y_index][end_X_index]
         current_cell.edges.add(segment)
         if not segment_a:
             if segment_a is None:
-                
                 t_delta_x =float('inf')
                 t_delta_y = self.offset_y
                 t_max_y = current_cell.y_max - y1
@@ -237,11 +240,11 @@ class GridPointInPolygon:
             t_delta_x = abs(self.offset_x / cos(segment_angle))
             t_delta_y = abs(self.offset_y / sin(segment_angle))
                       
-        while 1:
+        while True :
             #print(t_max_x, t_max_y)
-            if (segment_direction_y >= 0 and x2 <= current_cell.x_max
-                and y2 <= current_cell.y_max) or (segment_direction_y <= 0
-                and x2 <= current_cell.x_max and y2 >= current_cell.y_min):
+            if (segment_direction_y >= 0 and x2 < current_cell.x_max
+                and y2 < current_cell.y_max) or (segment_direction_y <= 0
+                and x2 < current_cell.x_max and y2 > current_cell.y_min):
                 break
             if t_max_x <= t_max_y:
                 t_max_x += t_delta_x
@@ -256,8 +259,7 @@ class GridPointInPolygon:
             current_cell = self.cells[current_Y_index ][current_X_index]
             #print(current_X_index, current_Y_index)
             current_cell.edges.add(segment)
-
-   
+        end = time.time()
     def __do_intersect(self, p1, q1, p2, q2):
         """
         Check if line segments p1q1 and p2q2 intersect.
@@ -343,7 +345,7 @@ class GridPointInPolygon:
         Preconditions:
             pointA.is_include must be known.
         """
-
+        start = time.time()
         sum_intersection = 0
 
         all_edges = cellA.edges | cellB.edges
@@ -371,6 +373,8 @@ class GridPointInPolygon:
             self.sure_out.append(pointB)
             pointB.is_include = "OUT"
         pointB.is_singular = False
+        end = time.time()
+        #print("inclusion test : ", end-start)
         return
 
     def __center_points_inclusion_test(self) -> None:
@@ -380,6 +384,7 @@ class GridPointInPolygon:
         This method tests the inclusion between each consecutive pair of center points
         in the grid.
         """
+        start = time.time()
         num_columns = len(self.cells[0])
 
         for row_idx, row in enumerate(self.cells):
@@ -400,7 +405,7 @@ class GridPointInPolygon:
                     else:
                         # If  not cellB.center_point.is_singular, move on to the next pair
                         break
-
+        end = time.time()
                     
 
     def is_point_include(self, point: Point) -> None:

@@ -5,6 +5,7 @@ from ray_casting import RayCast
 from grid_point_in_polygon import GridPointInPolygon
 from listWithTab import ListeTab
 from geo.tycat import tycat
+import time
 
 #variables gloables
 IN = True
@@ -115,6 +116,7 @@ class Find:
         # step 1
         # Brows the plan in the horizontal then in the vertival way to determine potential inclusion for each polygon
         assert(algo == "raycast" or algo == "grid")
+        start = time.time()
         liste_abscisse = Find.__poly_extrem_coord(polygones,x)
         liste_ordonne = Find.__poly_extrem_coord(polygones,y)      
         inclusions_possibles_abscisse = Find.__potential_inclusions(liste_abscisse,len(polygones))
@@ -123,8 +125,10 @@ class Find:
         inclusions_possibles =Find.__intersection(inclusions_possibles_ordonne, inclusions_possibles_abscisse)
         tab_grid = [None for _ in range(len(polygones))]
         inclusions : list = [-1 for _ in range(len(polygones))]
+        end = time.time()
         # state 2
         # Each polygon is tested whith other polygon determined in inclusion_possible
+        start = time.time()
         for polygone1 in range(len(inclusions_possibles)):
             for polygone2 in inclusions_possibles[polygone1]:
                 if algo == "raycast":
@@ -133,7 +137,7 @@ class Find:
                         break
                 if algo == "grid":                
                     if tab_grid[polygone2] == None:
-                        tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 500)
+                        tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 400)
                         if display_each_state:
                             for grid in tab_grid:
                                 if grid:
@@ -158,10 +162,10 @@ class Find:
                                         for cell in temp_cell:
                                             if cell.edges :
                                                 affiche_fast_voxel.append(cell.cell_polygon)
-                        
                     if tab_grid[polygone2].is_polygon_include(polygones[polygone1]):
                             inclusions[polygone1] = polygone2
                             break
+        end = time.time()
         #display for debug
         if display_fast_voxel and display_center_point :
             for grid in tab_grid:
