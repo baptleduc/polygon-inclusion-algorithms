@@ -102,13 +102,15 @@ class Find:
                     break
         return inclusions
     
-    def area_local_vision(polygones, algo, display_center_point = False, display_fast_voxel = False, display_each_state = False):
+    def area_local_vision(polygones, algo, display_center_point = False, display_fast_voxel = False):
         """
         use poly_extrem_coord to create to array of potential inclusion for each polygon, one in the horizontal way and the other in the vertival way. Finally the both result are intersected and we 
         find exctly which polygon is included in the other.
         
         Args:
             polygones: array of Polygon
+            display_center_point : bool to display center points IN, OUT and MAYBE
+            display_fast_voxel : bool to display each voxel intersected by all polygons
         Return:
             An array where the i-th element represent the polygone that the i-th polygone is inclued in"""
         x = 0
@@ -116,7 +118,6 @@ class Find:
         # step 1
         # Brows the plan in the horizontal then in the vertival way to determine potential inclusion for each polygon
         assert(algo == "raycast" or algo == "grid")
-        start = time.time()
         liste_abscisse = Find.__poly_extrem_coord(polygones,x)
         liste_ordonne = Find.__poly_extrem_coord(polygones,y)      
         inclusions_possibles_abscisse = Find.__potential_inclusions(liste_abscisse,len(polygones))
@@ -125,10 +126,8 @@ class Find:
         inclusions_possibles =Find.__intersection(inclusions_possibles_ordonne, inclusions_possibles_abscisse)
         tab_grid = [None for _ in range(len(polygones))]
         inclusions : list = [-1 for _ in range(len(polygones))]
-        end = time.time()
         # state 2
         # Each polygon is tested whith other polygon determined in inclusion_possible
-        start = time.time()
         for polygone1 in range(len(inclusions_possibles)):
             for polygone2 in inclusions_possibles[polygone1]:
                 if algo == "raycast":
@@ -138,21 +137,6 @@ class Find:
                 if algo == "grid":                
                     if tab_grid[polygone2] == None:
                         tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 400)
-                        if display_each_state:
-                            for grid in tab_grid:
-                                if grid:
-                                    temp = []
-                                    temp_pass = []
-                                    for i in grid.cells:
-                                        for j in i:
-                                            if j.edges :
-                                                temp_pass.append(j.cell_polygon)
-                                                temp_pass.append(j.center_point)
-                                            else:
-                                                temp.append(j.cell_polygon)
-                                                temp.append(j.center_point)
-
-                                    tycat(temp,grid.polygon,grid.sure_out,temp_pass)
                         # display for debug
                         affiche_fast_voxel = []
                         if display_fast_voxel:
@@ -165,7 +149,6 @@ class Find:
                     if tab_grid[polygone2].is_polygon_include(polygones[polygone1]):
                             inclusions[polygone1] = polygone2
                             break
-        end = time.time()
         #display for debug
         if display_fast_voxel and display_center_point :
             for grid in tab_grid:

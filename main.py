@@ -4,13 +4,8 @@ fichier principal pour la detection des inclusions.
 ce fichier est utilise pour les tests automatiques.
 attention donc lors des modifications.
 """
-from geo.tycat import tycat
-from geo.point import Point
 from tycat import read_instance
-from tycat import print_polygons
-from ray_casting import RayCast
 from find import Find
-from grid_point_in_polygon import GridPointInPolygon
 from sys import argv
 
 
@@ -23,7 +18,7 @@ def main():
     """
     for fichier in argv[1:]:
         polygones = read_instance(fichier)
-        inclusions = Find.area_local_vision(polygones, "grid", display_center_point = False, display_fast_voxel = False, display_each_state = False)
+        inclusions = Find.area_local_vision(polygones, "raycast", display_center_point = False, display_fast_voxel = False)
         print(inclusions)
 
 if __name__ == "__main__":
