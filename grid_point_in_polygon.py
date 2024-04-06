@@ -81,23 +81,23 @@ class GridPointInPolygon:
         y_max = y_min + max(x_max - x_min, y_max - y_min) 
         # Adjust the grid’s bounding box slightly larger than the polygon’s bounding box
         # to avoid problems caused by finite arithmetic.
-        x_min -= (x_max-x_min)  / 3
-        x_max += (x_max-x_min)  /3
-        y_max += (y_max-y_min)   /3
-        y_min -= (y_max-y_min)   /3
+        x_min -= (x_max-x_min)  / 5
+        x_max += (x_max-x_min)  /5
+        y_max += (y_max-y_min)   /5
+        y_min -= (y_max-y_min)   /5
         
         # Calculate the number of rows and columns
         k = 1 
         self.height = (x_max - x_min)
         self.width = (y_max - y_min)
-        self.nb_rows = int (k * sqrt(self.nb_cell * self.width / self.width))   
-        self.nb_columns = int ( k * sqrt(self.nb_cell * self.height/ self.height))
+        self.nb_rows = int (k * sqrt(self.nb_cell * self.width / self.height))   
+        self.nb_columns = int ( k * sqrt(self.nb_cell * self.height/ self.width))
         #tests
-        # self.nb_rows = 20
-        # self.nb_columns = 20
+        self.nb_rows = 20
+        self.nb_columns = 20
         # Calculate the offsets in x and y
-        self.offset_x = (x_max - x_min) / self.nb_rows
-        self.offset_y = self.offset_x
+        self.offset_x = (x_max - x_min) / self.nb_columns
+        self.offset_y = (y_max - y_min) / self.nb_rows
         self.nb_cell = self.nb_columns * self.nb_rows
         x_start = x_min         
         self.y_min = y_min
@@ -118,12 +118,10 @@ class GridPointInPolygon:
                 # Create a central Point and
                 center_point = cell.center_point
                 center_point_x, center_point_y = center_point.coordinates
-                (x_min_poly, _), (x_max_poly, _) = self.bounding_quadrant.get_arrays()
-                if center_point_x <= x_min_poly or center_point_x >= x_max_poly:
-                    self.sure_out.append(center_point)
+                (x_min_poly, y_min_poly), (x_max_poly,y_max_poly) = self.bounding_quadrant.get_arrays()
+                if center_point_x < x_min_poly or center_point_x > x_max_poly or center_point_y < y_min_poly or center_point_y > y_max_poly :
                     self.sure_out.append(center_point)
                     center_point.is_include = "OUT"
-                    self.sure_out.append(center_point)
                     center_point.is_singular = False
                     
             self.cells.append(cells_row)
@@ -209,7 +207,7 @@ class GridPointInPolygon:
         segment_dx, segment_dy = (x2 - x1), (y2 - y1)
         (segment_direction_x, segment_direction_y) = (SIGN(segment_dx), SIGN(segment_dy))
         segment_a = segment_dy / segment_dx if SIGN(segment_dx) != 0 else None
-        segment_angle = atan(segment_a) if segment_a is not None else pi/2
+        segment_angle = atan(segment_a) if segment_a is not None else None
         #segment_b = y1 - segment_a * x1 if segment_a is not None else -float('inf')
         step_x, step_y = (
             1  ,
@@ -250,7 +248,7 @@ class GridPointInPolygon:
                 current_X_index += step_x
                 if not (0 <= current_X_index < len(self.cells)):
                     break    
-            else :
+            else:
                 t_max_y += t_delta_y
                 current_Y_index += step_y
                 if not (0 <= current_Y_index < len(self.cells)):
@@ -259,30 +257,7 @@ class GridPointInPolygon:
             #print(current_X_index, current_Y_index)
             current_cell.edges.add(segment)
 
-                    # coeff_dir = segment_dy / segment_dx if segment_dx != 0 else 0
-        # end_x, end_y = self.__get_idx_cell_containing_point(x2, y2)
-        # end_cell: Cell = self.cells[end_y][end_x]
-        # print("begin ", current_X_index, current_Y_index)
-        # print("end ",end_x, end_y)
-        # print(coeff_dir)
-        # current_cell.edges.add(segment)
-        # x_temp = x1
-        # print(self.offset_x)
-        # pas = self.offset_x / 10 * segment_direction_x
-        # print(pas)
-        # while current_cell != end_cell:
-        #     x_temp += pas
-        #     y_temp = y1 + coeff_dir * (x_temp) if segment_dx != 0 else y1
-        #     print(y_temp)
-        #     print(x_temp // self.offset_x, x_temp // self.offset_y)
-        #     current_X_index, current_Y_index = self.__get_idx_cell_containing_point(x_temp,y_temp)
-        #     print(current_X_index, current_Y_index)
-        #     if abs(current_X_index) > self.nb_columns or abs(current_Y_index) > self.nb_rows:
-        #         break
-        #     current_cell = self.cells[current_Y_index][current_X_index]
-        #     current_cell.edges.add(segment)
-
-        #init t_max and t_delta
+   
     def __do_intersect(self, p1, q1, p2, q2):
         """
         Check if line segments p1q1 and p2q2 intersect.

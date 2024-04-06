@@ -133,7 +133,7 @@ class Find:
                         break
                 if algo == "grid":                
                     if tab_grid[polygone2] == None:
-                        tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 300)
+                        tab_grid[polygone2] = GridPointInPolygon(polygones[polygone2], 500)
                         if display_each_state:
                             for grid in tab_grid:
                                 if grid:
@@ -153,7 +153,7 @@ class Find:
                         affiche_fast_voxel = []
                         if display_fast_voxel:
                             for grid in tab_grid:
-                                if grid:
+                                if grid is not None:
                                     for temp_cell in grid.cells:
                                         for cell in temp_cell:
                                             if cell.edges :
