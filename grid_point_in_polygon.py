@@ -2,16 +2,14 @@
 
 from geo.polygon import Polygon
 from geo.quadrant import Quadrant
-from geo.segment import Segment
 from geo.point import Point
-from geo.tycat import tycat
 from cell import Cell
 from math import floor
 from math import sqrt
 from math import cos
 from math import sin
 from math import atan
-from math import pi
+
 
 class GridPointInPolygon:
     """
@@ -42,10 +40,10 @@ class GridPointInPolygon:
         self.cells: list
         self.first_column: list
         self.nb_rows: int
-        self.nb_columns : int
+        self.nb_columns: int
         self.nb_cell = nb_cell
 
-        #To display
+        # To display
         self.sure_in = []
         self.sure_out = []
         self.sure_maybe = []
@@ -66,23 +64,23 @@ class GridPointInPolygon:
 
         (x_min, y_min), (x_max, y_max) = self.bounding_quadrant.get_arrays()
 
-        # define a sqare 
+        # define a sqare
         x_max = x_min + max(x_max - x_min, y_max - y_min)
         y_max = y_min + max(x_max - x_min, y_max - y_min)
-        
+
         # Adjust the grid’s bounding box slightly larger than the polygon’s bounding box
         # to avoid problems caused by finite arithmetic.
-        x_min -= (x_max-x_min)  / 5
-        x_max += (x_max-x_min)  / 5
-        y_max += (y_max-y_min)  / 5
-        y_min -= (y_max-y_min)  / 5
-        
+        x_min -= (x_max - x_min) / 5
+        x_max += (x_max - x_min) / 5
+        y_max += (y_max - y_min) / 5
+        y_min -= (y_max - y_min) / 5
+
         # Calculate the number of rows and columns
-        k = 1 
-        self.height = (x_max - x_min)
-        self.width = (y_max - y_min)
-        self.nb_rows = int (k * sqrt(self.nb_cell * self.width / self.height))   
-        self.nb_columns = int ( k * sqrt(self.nb_cell * self.height/ self.width))
+        k = 1
+        self.height = x_max - x_min
+        self.width = y_max - y_min
+        self.nb_rows = int(k * sqrt(self.nb_cell * self.width / self.height))
+        self.nb_columns = int(k * sqrt(self.nb_cell * self.height / self.width))
 
         # Calculate the offsets in x and y
         self.offset_x = (x_max - x_min) / self.nb_columns
@@ -92,7 +90,7 @@ class GridPointInPolygon:
         self.x_min = x_min
         self.cells = []
 
-        #create the grid
+        # create the grid
         for i in range(self.nb_rows):
             y = y_min + i * self.offset_y
             cells_row = []
@@ -101,19 +99,26 @@ class GridPointInPolygon:
                 x = x_min + j * self.offset_x
 
                 cell = Cell(x, x + self.offset_x, y, y + self.offset_y)
-                cells_row.append(cell) 
+                cells_row.append(cell)
 
                 # Create a central Point and
                 center_point = cell.center_point
                 center_point_x, center_point_y = center_point.coordinates
-                (x_min_poly, y_min_poly), (x_max_poly,y_max_poly) = self.bounding_quadrant.get_arrays()
-                if center_point_x < x_min_poly or center_point_x > x_max_poly or center_point_y < y_min_poly or center_point_y > y_max_poly :
+                (x_min_poly, y_min_poly), (x_max_poly, y_max_poly) = (
+                    self.bounding_quadrant.get_arrays()
+                )
+                if (
+                    center_point_x < x_min_poly
+                    or center_point_x > x_max_poly
+                    or center_point_y < y_min_poly
+                    or center_point_y > y_max_poly
+                ):
                     self.sure_out.append(center_point)
                     center_point.is_include = "OUT"
                     center_point.is_singular = False
-                    
+
             self.cells.append(cells_row)
-            
+
     def __marked_transversed_cells(self) -> None:
         """
         Perfom the segment_grid_traversal for each segment of the polygon.
@@ -144,25 +149,29 @@ class GridPointInPolygon:
         Args:
             segment (Segment) : The segment to traverse form: Ax + b
         """
+
         def SIGN(x):
             return 1 if x > 0 else -1 if x < 0 else 0
 
-        #define segment parameters
+        # define segment parameters
         ((x1, y1), (x2, y2)) = (
             segment.endpoints[0].coordinates,
             segment.endpoints[1].coordinates,
         )
-        if x2 < x1 :
-            (x1, y1),(x2,y2) =( x2, y2),(x1,y1)   
+        if x2 < x1:
+            (x1, y1), (x2, y2) = (x2, y2), (x1, y1)
         segment_dx, segment_dy = (x2 - x1), (y2 - y1)
-        (segment_direction_x, segment_direction_y) = (SIGN(segment_dx), SIGN(segment_dy))
+        (segment_direction_x, segment_direction_y) = (
+            SIGN(segment_dx),
+            SIGN(segment_dy),
+        )
         segment_a = segment_dy / segment_dx if SIGN(segment_dx) != 0 else None
         segment_angle = atan(segment_a) if segment_a is not None else None
         step_x, step_y = (
-            1  ,
-            segment_direction_y  ,
+            1,
+            segment_direction_y,
         )
-        
+
         # Add the segment to the cell initially containing the point (x1, y1).
         current_X_index, current_Y_index = self.__get_idx_cell_containing_point(x1, y1)
         current_cell: Cell = self.cells[current_Y_index][current_X_index]
@@ -174,44 +183,51 @@ class GridPointInPolygon:
         if not segment_a:
             if segment_a is None:
                 # vertical segment
-                t_delta_x =float('inf')
+                t_delta_x = float("inf")
                 t_delta_y = self.offset_y
                 t_max_y = current_cell.y_max - y1
-                t_max_x = float('inf')
-                
-            else :
+                t_max_x = float("inf")
+
+            else:
                 # horizontal segment
                 t_delta_x = self.offset_x
-                t_delta_y = float('inf')
+                t_delta_y = float("inf")
                 t_max_x = current_cell.x_max - x1
-                t_max_y = float('inf')
-                
+                t_max_y = float("inf")
+
         else:
             t_max_x = abs((current_cell.x_max - x1) / cos(segment_angle))
             t_max_y = abs((current_cell.y_max - y1) / sin(segment_angle))
             t_delta_x = abs(self.offset_x / cos(segment_angle))
             t_delta_y = abs(self.offset_y / sin(segment_angle))
-                      
-        while True :
+
+        while True:
             # shutdown condition
-            if (segment_direction_y >= 0 and x2 < current_cell.x_max
-                and y2 < current_cell.y_max) or (segment_direction_y <= 0
-                and x2 < current_cell.x_max and y2 > current_cell.y_min):
+            if (
+                segment_direction_y >= 0
+                and x2 < current_cell.x_max
+                and y2 < current_cell.y_max
+            ) or (
+                segment_direction_y <= 0
+                and x2 < current_cell.x_max
+                and y2 > current_cell.y_min
+            ):
                 break
             if t_max_x <= t_max_y:
                 # horizontal step
                 t_max_x += t_delta_x
                 current_X_index += step_x
                 if not (0 <= current_X_index < len(self.cells[0])):
-                    break    
+                    break
             else:
-                #vertical step
+                # vertical step
                 t_max_y += t_delta_y
                 current_Y_index += step_y
                 if not (0 <= current_Y_index < len(self.cells)):
-                    break    
-            current_cell = self.cells[current_Y_index ][current_X_index]
+                    break
+            current_cell = self.cells[current_Y_index][current_X_index]
             current_cell.edges.add(segment)
+
     def __do_intersect(self, p1, q1, p2, q2):
         """
         Check if line segments p1q1 and p2q2 intersect.
@@ -280,7 +296,9 @@ class GridPointInPolygon:
         else:
             return 2  # Counter-clockwise
 
-    def __inclusion_test(self, cellA: Cell, cellB: Cell, pointA: Point, pointB: Point) -> None:
+    def __inclusion_test(
+        self, cellA: Cell, cellB: Cell, pointA: Point, pointB: Point
+    ) -> None:
         """
         Test if 'pointB' is included within the polygon by counting the number of intersections
         between the line segment formed by pointA and pointB and all segments of cellA.edges U cellB.edges.
@@ -297,7 +315,6 @@ class GridPointInPolygon:
         Preconditions:
             pointA.is_include must be known.
         """
-        start = time.time()
         sum_intersection = 0
 
         all_edges = cellA.edges | cellB.edges
@@ -325,7 +342,6 @@ class GridPointInPolygon:
             self.sure_out.append(pointB)
             pointB.is_include = "OUT"
         pointB.is_singular = False
-        end = time.time()
         return
 
     def __center_points_inclusion_test(self) -> None:
@@ -335,7 +351,6 @@ class GridPointInPolygon:
         This method tests the inclusion between each consecutive pair of center points
         in the grid.
         """
-        start = time.time()
         num_columns = len(self.cells[0])
 
         for row_idx, row in enumerate(self.cells):
@@ -344,7 +359,7 @@ class GridPointInPolygon:
                 if cellA.center_point.is_singular:
                     continue
 
-                for next_col_idx in range(col_idx , num_columns):
+                for next_col_idx in range(col_idx, num_columns):
                     cellB = self.cells[row_idx][next_col_idx]
                     self.__inclusion_test(
                         cellA, cellB, cellA.center_point, cellB.center_point
@@ -356,8 +371,6 @@ class GridPointInPolygon:
                     else:
                         # If  not cellB.center_point.is_singular, move on to the next pair
                         break
-        end = time.time()
-                    
 
     def is_point_include(self, point: Point) -> None:
         """
