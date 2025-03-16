@@ -1,5 +1,5 @@
 
-# Polygon Inclusion Algorithm
+# Polygon Inclusion Algorithms
 
 This project focuses on the inclusion of polygons algorithm. The goal was to determine which polygons are directly contained within other polygons from a set of simple polygons. The project was developed as part of my Object-Oriented Programming course during my second year at [Ensimag](https://ensimag.grenoble-inp.fr/en) in the Information Systems Engineering course.
 
